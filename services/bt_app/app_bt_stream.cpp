@@ -154,6 +154,10 @@ extern const IIR_CFG_T *const audio_eq_hw_iir_cfg_list[];
 #include "hw_codec_iir_process.h"
 #include "hw_filter_codec_iir.h"
 
+// q35 edits
+#undef __AUDIO_OUTPUT_MONO_MODE__
+#undef __AUDIO_INPUT_MONO_MODE__
+
 hw_filter_codec_iir_cfg
     POSSIBLY_UNUSED
         adc_iir_cfg = {.bypass = 0,
@@ -4193,11 +4197,11 @@ int bt_sbc_player(enum PLAYER_OPER_T on, enum APP_SYSFREQ_FREQ_T freq) {
       app_audio_mempool_get_buff(&bt_eq_buff, eq_buff_size);
     }
 
-#if defined(IBRT)
-    enum AUD_CHANNEL_NUM_T sw_ch_num = AUD_CHANNEL_NUM_1;
-#else
-    enum AUD_CHANNEL_NUM_T sw_ch_num = stream_cfg.channel_num;
-#endif
+// #if defined(IBRT)
+    // enum AUD_CHANNEL_NUM_T sw_ch_num = AUD_CHANNEL_NUM_1;
+// #else
+    enum AUD_CHANNEL_NUM_T sw_ch_num = stream_cfg.channel_num; // q35 stereo edit
+// #endif
 
     audio_process_open(stream_cfg.sample_rate, stream_cfg.bits, sw_ch_num,
                        stream_cfg.channel_num,
@@ -4333,22 +4337,22 @@ int bt_sbc_player(enum PLAYER_OPER_T on, enum APP_SYSFREQ_FREQ_T freq) {
       dest_packet_mut *= a2dp_audio_latency_factor_get();
       A2DP_AUDIO_CHANNEL_SELECT_E a2dp_audio_channel_sel =
           A2DP_AUDIO_CHANNEL_SELECT_STEREO;
-      switch ((AUDIO_CHANNEL_SELECT_E)p_ibrt_ctrl->audio_chnl_sel) {
-      case AUDIO_CHANNEL_SELECT_STEREO:
-        a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_STEREO;
-        break;
-      case AUDIO_CHANNEL_SELECT_LRMERGE:
-        a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_LRMERGE;
-        break;
-      case AUDIO_CHANNEL_SELECT_LCHNL:
-        a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_LCHNL;
-        break;
-      case AUDIO_CHANNEL_SELECT_RCHNL:
-        a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_RCHNL;
-        break;
-      default:
-        break;
-      }
+      // switch ((AUDIO_CHANNEL_SELECT_E)p_ibrt_ctrl->audio_chnl_sel) { // q35 edit
+      // case AUDIO_CHANNEL_SELECT_STEREO:
+      //   a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_STEREO;
+      //   break;
+      // case AUDIO_CHANNEL_SELECT_LRMERGE:
+      //   a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_LRMERGE;
+      //   break;
+      // case AUDIO_CHANNEL_SELECT_LCHNL:
+      //   a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_LCHNL;
+      //   break;
+      // case AUDIO_CHANNEL_SELECT_RCHNL:
+      //   a2dp_audio_channel_sel = A2DP_AUDIO_CHANNEL_SELECT_RCHNL;
+      //   break;
+      // default:
+      //   break;
+      // }
       dest_packet_mut += offset_mut;
       a2dp_audio_init(freq, a2dp_audio_codec_type, &output_config,
                       a2dp_audio_channel_sel, (uint16_t)dest_packet_mut);
@@ -7010,11 +7014,11 @@ int app_play_linein_onoff(bool onoff) {
       app_audio_mempool_get_buff(&bt_eq_buff, eq_buff_size);
     }
 
-#if defined(IBRT)
-    enum AUD_CHANNEL_NUM_T sw_ch_num = AUD_CHANNEL_NUM_1;
-#else
-    enum AUD_CHANNEL_NUM_T sw_ch_num = stream_cfg.channel_num;
-#endif
+// #if defined(IBRT)
+    // enum AUD_CHANNEL_NUM_T sw_ch_num = AUD_CHANNEL_NUM_1;
+// #else
+    enum AUD_CHANNEL_NUM_T sw_ch_num = stream_cfg.channel_num; // q35 stereo edit
+// #endif
 
     audio_process_open(stream_cfg.sample_rate, stream_cfg.bits, sw_ch_num,
                        stream_cfg.channel_num,

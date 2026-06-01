@@ -1793,7 +1793,7 @@ void avrcp_callback_TG(btif_avrcp_chnl_handle_t chnl,
 
 avrcp_media_status_t media_status = 0xff;
 uint8_t avrcp_get_media_status(void) {
-  APP_A2DP_TRACE(2, "%s %d", __func__, media_status);
+  // APP_A2DP_TRACE(2, "%s %d", __func__, media_status); // why are you there?? hey???
   return media_status;
 }
 uint8_t avrcp_ctrl_music_flag;
