@@ -5,6 +5,10 @@ this is a part of my project - [openqore](https://github.com/nnonickreal/openqor
 
 ## Usage
 
+first of all, please read my [flashing guide](https://github.com/nnonickreal/openqore/blob/main/docs/FLASHING.md) and make a [backup](https://github.com/nnonickreal/openqore/blob/main/docs/READING.md)!
+
+after reading (backuping) the flash, put the flash dump image in the "tools" folder and rename it to "firmware.bin"
+
 ```bash
 
 ./start_dev.sh # this will cause docker to start your working environment; this should take roughly 1-3 minutes depending on your network speed to the GCC hosting server
