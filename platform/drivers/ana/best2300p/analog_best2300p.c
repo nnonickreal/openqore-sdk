@@ -123,7 +123,7 @@
 #endif
 
 #ifndef ANC_VMIC_CFG
-#error "No ANC VMIC configured"
+#warning "No ANC VMIC configured"
 #define ANC_VMIC_CFG (AUD_VMIC_MAP_VMIC1)
 #endif
 
@@ -863,6 +863,23 @@ enum ANA_CODEC_USER_T {
   ANA_CODEC_USER_VAD = (1 << 6),
 };
 
+#include "hal_iomux.h"
+#include "hal_gpio.h"
+
+void q35_audio_path_enable(void) { // dac control
+    struct HAL_IOMUX_PIN_FUNCTION_MAP pin0 = {
+        HAL_GPIO_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
+    };
+    hal_iomux_init(&pin0, 1);
+    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_0, HAL_GPIO_DIR_OUT, 1); // reverse engineered from soundcore firmware but idk what this one does
+
+    struct HAL_IOMUX_PIN_FUNCTION_MAP pin1 = {
+        HAL_GPIO_PIN_P0_1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
+    };
+    hal_iomux_init(&pin1, 1);
+    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_1, HAL_GPIO_DIR_OUT, 1); // this one turns the dac on
+}
+
 struct ANALOG_PLL_CFG_T {
   uint32_t freq;
   uint8_t div;
@@ -1442,9 +1459,30 @@ void analog_aud_apply_adc_gain_offset(enum AUD_CHANNEL_MAP_T ch_map,
 }
 #endif
 
-void analog_aud_set_dac_gain(int32_t v) {}
+void analog_aud_set_dac_gain(int32_t v)
+{
+    uint16_t val;
+    if (v != -1) {
+        analog_read(ANA_REG_6F, &val);
+        
+        val &= ~(DRE_GAIN_SEL_L | DRE_GAIN_SEL_R);
+        
+        val = SET_BITFIELD(val, REG_CODEC_TX_EAR_DRE_GAIN_L, v);
+        val = SET_BITFIELD(val, REG_CODEC_TX_EAR_DRE_GAIN_R, v);
+        
+        val |= REG_CODEC_TX_EAR_DRE_GAIN_L_UPDATE | REG_CODEC_TX_EAR_DRE_GAIN_R_UPDATE;
+        analog_write(ANA_REG_6F, val);
+        
+        val &= ~(REG_CODEC_TX_EAR_DRE_GAIN_L_UPDATE | REG_CODEC_TX_EAR_DRE_GAIN_R_UPDATE);
+        analog_write(ANA_REG_6F, val);
+    }
+}
 
-uint32_t analog_codec_get_dac_gain(void) { return 0; }
+uint32_t analog_codec_get_dac_gain(void) {
+    uint16_t val;
+    analog_read(ANA_REG_6F, &val);
+    return GET_BITFIELD(val, REG_CODEC_TX_EAR_DRE_GAIN_L);
+}
 
 uint32_t analog_codec_dac_gain_to_db(int32_t gain) { return 0; }
 
@@ -1848,15 +1886,15 @@ void analog_open(void) {
          REG_CODEC_TX_EAR_DR_ST(1) | REG_CODEC_TX_EAR_FBCAP(3);
   analog_write(ANA_REG_6E, val);
 
-  val = REG_CODEC_TX_EAR_DRE_GAIN_L(0xF) | REG_CODEC_TX_EAR_DRE_GAIN_R(0xF) |
-        DRE_GAIN_SEL_L | DRE_GAIN_SEL_R | REG_CODEC_TX_EAR_GAIN(1);
+  val = REG_CODEC_TX_EAR_DRE_GAIN_L(0xF) | REG_CODEC_TX_EAR_DRE_GAIN_R(0xF) | REG_CODEC_TX_EAR_GAIN(1);
+    analog_write(ANA_REG_6F, val);
 #ifdef DAC_DRE_GAIN_DC_UPDATE
   val |=
       REG_CODEC_TX_EAR_DRE_GAIN_L_UPDATE | REG_CODEC_TX_EAR_DRE_GAIN_R_UPDATE;
 #endif
   analog_write(ANA_REG_6F, val);
 
-  val = REG_CODEC_TX_EAR_OUTPUTSEL(1) | REG_CODEC_TX_EAR_SOFTSTART(8) |
+  val = REG_CODEC_TX_EAR_OUTPUTSEL(0) | REG_CODEC_TX_EAR_SOFTSTART(8) |
         REG_CODEC_TX_EAR_OCEN | REG_CODEC_TX_EAR_LPBIAS;
   analog_write(ANA_REG_70, val);
 
@@ -2052,6 +2090,11 @@ void analog_aud_codec_speaker_enable(bool en) {
   analog_aud_codec_config_speaker();
 }
 
+void q35_audio_path_disable(void) {
+    hal_gpio_pin_clr(HAL_GPIO_PIN_P0_0);
+    hal_gpio_pin_clr(HAL_GPIO_PIN_P0_1);
+}
+
 void analog_aud_codec_dac_enable(bool en) {
   if (en) {
     analog_aud_enable_codec_common(ANA_CODEC_USER_DAC, true);
@@ -2062,7 +2105,9 @@ void analog_aud_codec_dac_enable(bool en) {
     osDelay(1);
     analog_aud_codec_speaker_enable(true);
 #endif
+    q35_audio_path_enable();
   } else {
+    q35_audio_path_disable();
 #if !defined(AUDIO_OUTPUT_DC_CALIB_ANA) && !defined(AUDIO_OUTPUT_DC_CALIB)
     analog_aud_codec_speaker_enable(false);
     osDelay(1);
