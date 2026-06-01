@@ -7,7 +7,6 @@ extern "C" {
 
 #if !defined(IBRT)
 
-/* Типы */
 typedef struct {
     uint8_t  nv_role;
     uint8_t  current_role;
@@ -28,7 +27,6 @@ typedef struct {
     uint8_t super_state;
 } app_ibrt_ui_t;
 
-/* IBRT действия для key_handler */
 #define IBRT_ACTION_LOCAL_VOLUP     1
 #define IBRT_ACTION_LOCAL_VOLDN     2
 #define IBRT_ACTION_PAUSE           3
@@ -37,7 +35,6 @@ typedef struct {
 #define IBRT_ACTION_BACKWARD        6
 #define IBRT_ACTION_ANC_NOTIRY_MASTER_EXCHANGE_COEF 7
 
-/* Box/UI состояния */
 #define IBRT_IN_BOX_CLOSED          0
 #define IBRT_OUT_BOX                1
 #define IBRT_CONNECT_MOBILE_FAILED  0
@@ -48,13 +45,11 @@ typedef struct {
 #define NO_LINK_TYPE                0
 #define IBRT_CLOSE_BOX_EVENT        0
 
-/* Базовые константы */
 #define IBRT_SLAVE                  0
 #define IBRT_MASTER                 1
 #define IBRT_UNKNOW                 255
 #define BTIF_HCI_INVALID_HANDLE     0xFFFF
 
-/* Базовые функции */
 static inline ibrt_ctrl_t *app_tws_ibrt_get_bt_ctrl_ctx(void) {
     static ibrt_ctrl_t stub = {
         .nv_role = IBRT_MASTER,
@@ -93,16 +88,14 @@ static inline void app_tws_ibrt_disconnect_connection(void *dev) {
 }
 
 static inline int app_tws_is_left_side(void) {
-    return 1; // Всегда левый для standalone
+    return 1;
 }
 
 static inline int app_tws_is_right_side(void) {
     return 0;
 }
 
-/* key_handler функции */
 static inline void app_ibrt_if_start_user_action(uint8_t device_id, uint8_t action) {
-    // Для standalone - вызываем обычные BT функции
     extern void app_bt_volumeup(void);
     extern void app_bt_volumedown(void);
     extern void a2dp_handleKey(uint8_t key);
@@ -131,7 +124,6 @@ static inline void app_ibrt_if_start_user_action(uint8_t device_id, uint8_t acti
     }
 }
 
-/* apps.cpp функции */
 static inline void app_ibrt_sync_volume_info(void) {}
 static inline void app_ibrt_if_force_audio_retrigger_slave_sync(void) {}
 static inline void app_ibrt_if_force_audio_retrigger(void) {}
