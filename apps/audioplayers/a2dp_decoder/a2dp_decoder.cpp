@@ -1065,6 +1065,9 @@ static void inline a2dp_audio_channel_select(
   uint32_t samples;
   uint32_t i;
 
+  // q35 stereo edit
+  chnl_sel = A2DP_AUDIO_CHANNEL_SELECT_STEREO;
+
   ASSERT_A2DP_DECODER(a2dp_audio_context.output_cfg.num_channels == 2,
                       "%s num_channels:%d", __func__,
                       a2dp_audio_context.output_cfg.num_channels);
@@ -2040,6 +2043,9 @@ int a2dp_audio_dest_packet_mut_get(void) {
 
 int a2dp_audio_set_channel_select(A2DP_AUDIO_CHANNEL_SELECT_E chnl_sel) {
   int nRet = A2DP_DECODER_NO_ERROR;
+
+  // q35 stereo edit
+  chnl_sel = A2DP_AUDIO_CHANNEL_SELECT_STEREO;
 
   if (a2dp_audio_get_status() == A2DP_AUDIO_DECODER_STATUS_START) {
     a2dp_audio_context.chnl_sel = chnl_sel;
