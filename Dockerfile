@@ -26,6 +26,8 @@ WORKDIR /usr/src
 
 RUN apt-get update \
     && apt-get install -y \ 
+	python3 \
+	python-is-python3 \
     bash \
     bc \
     bzip2 \
