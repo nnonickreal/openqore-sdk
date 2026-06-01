@@ -46,7 +46,11 @@
 #include "app_ai_manager_api.h"
 #include "app_ai_tws.h"
 #endif
+#ifdef IBRT
 #include "app_tws_ibrt_cmd_handler.h"
+#else
+#include "app_ibrt_stub.h"
+#endif
 #include "audio_process.h"
 
 #ifdef __PC_CMD_UART__

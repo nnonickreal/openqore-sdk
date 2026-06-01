@@ -91,14 +91,19 @@ static enum APP_POWERON_CASE_T g_pwron_case = APP_POWERON_CASE_INVALID;
 
 #ifndef APP_TEST_MODE
 static uint8_t app_status_indication_init(void) {
-  struct APP_PWL_CFG_T cfg;
-  hal_iomux_init((struct HAL_IOMUX_PIN_FUNCTION_MAP *)cfg_hw_pinmux_pwl,
-                 sizeof(cfg_hw_pinmux_pwl) /
-                     sizeof(struct HAL_IOMUX_PIN_FUNCTION_MAP));
-  memset(&cfg, 0, sizeof(struct APP_PWL_CFG_T));
-  app_pwl_open();
-  app_pwl_setup(APP_PWL_ID_0, &cfg);
-  app_pwl_setup(APP_PWL_ID_1, &cfg);
+  static const struct HAL_IOMUX_PIN_FUNCTION_MAP leds[] = {
+      {HAL_IOMUX_PIN_LED1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // WHITE
+      {HAL_IOMUX_PIN_LED2, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // RED
+      {HAL_IOMUX_PIN_P0_3, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // BLUE
+  };
+  
+  hal_iomux_init(leds, 3);
+  
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_LED1, HAL_GPIO_DIR_OUT, 1);
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_LED2, HAL_GPIO_DIR_OUT, 1);
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_3, HAL_GPIO_DIR_OUT, 0); // why tf the blue led is active high bro :sob:
+  
+  TRACE(0, "beautiful software pwm for leds init!");
   return 0;
 }
 #endif
@@ -324,9 +329,13 @@ int app_voice_report_handler(APP_STATUS_INDICATION_T status, uint8_t device_id,
       break;
     case APP_STATUS_INDICATION_CONNECTED:
       id = AUD_ID_BT_CONNECTED;
+      led_set_pairing_mode(false);
+      led_set_music_playing(false);
       break;
     case APP_STATUS_INDICATION_DISCONNECTED:
       id = AUD_ID_BT_DIS_CONNECT;
+      led_set_pairing_mode(false);
+      led_set_music_playing(false);
       break;
     case APP_STATUS_INDICATION_CALLNUMBER:
       id = AUD_ID_BT_CALL_INCOMING_NUMBER;
@@ -369,6 +378,7 @@ int app_voice_report_handler(APP_STATUS_INDICATION_T status, uint8_t device_id,
       break;
     case APP_STATUS_INDICATION_BOTHSCAN:
       id = AUD_ID_BT_PAIR_ENABLE;
+      led_set_pairing_mode(true);
       break;
     case APP_STATUS_INDICATION_WARNING:
       id = AUD_ID_BT_WARNING;
@@ -733,6 +743,7 @@ extern "C" void app_bt_key(APP_KEY_STATUS *status, void *param) {
   switch (status->event) {
   case APP_KEY_EVENT_CLICK:
     TRACE(0, "first blood!");
+
 #if DEBUG_CODE_USE
     if (status->code == APP_KEY_CODE_PWR) {
 #ifdef __INTERCONNECTION__
@@ -779,6 +790,7 @@ extern "C" void app_bt_key(APP_KEY_STATUS *status, void *param) {
       if (btif_me_get_activeCons() < 2) {
 #endif
         app_bt_accessmode_set(BTIF_BT_DEFAULT_ACCESS_MODE_PAIR);
+        led_set_pairing_mode(true);
 #ifdef __INTERCONNECTION__
         app_interceonnection_start_discoverable_adv(
             INTERCONNECTION_BLE_FAST_ADVERTISING_INTERVAL,
@@ -1499,11 +1511,11 @@ static void Auto_Shutdowm_Timerfun(const void *) {
 
   // TRACE(3,"GIOI25 = %d,charge sta = %d!!!!!",hal_gpio_pin_get_val((enum
   // HAL_GPIO_PIN_T)app_battery_charger_full_indicator_cfg.pin),app_battery_is_charging());
-  if (app_battery_is_charging()) {
-    if ((p_ui_ctrl->box_state != IBRT_IN_BOX_CLOSED)) {
-      app_ibrt_ui_event_entry(IBRT_CLOSE_BOX_EVENT);
-    }
-  }
+  // if (app_battery_is_charging()) {
+  //   if ((p_ui_ctrl->box_state != IBRT_IN_BOX_CLOSED)) {
+  //     app_ibrt_ui_event_entry(IBRT_CLOSE_BOX_EVENT);
+  //   }
+  // }
   app_battery_get_info(&currvolt, NULL, NULL);
   if (p_ui_ctrl->box_state == IBRT_OUT_BOX) {
     if (app_device_bt_is_connected()) {
@@ -1865,6 +1877,9 @@ void app_ibrt_init(void) {
 #endif
 }
 
+extern "C" void app_mute_ctrl_init(void) {
+}
+
 void user_io_timer_init(void) {
   // app_mute_ctrl_init();
   LED_statusinit();
@@ -1886,13 +1901,40 @@ extern uint32_t __aud_start[];
 extern uint32_t __userdata_start[];
 extern uint32_t __factory_start[];
 
+#if defined(IBRT)
+void app_ibrt_init_headphones(void) {
+    app_ibrt_init();
+
+    app_ibrt_ui_set_freeman_enable();
+
+    TRACE(0, "rise and shine, mr freeman 2");
+}
+#endif
+
+#if defined(IBRT)
+static void app_headphones_virtual_fetch_out(struct nvrecord_env_t *nvrecord_env) // this thing decouples the firmware from the buds logic
+{
+    TRACE(0, "headphones virtual fetch out");
+
+    app_ibrt_ui_event_entry(IBRT_OPEN_BOX_EVENT);
+    app_ibrt_ui_event_entry(IBRT_FETCH_OUT_EVENT);
+
+// #ifdef IBRT_SEARCH_UI
+//     if (IBRT_UNKNOW == nvrecord_env->ibrt_mode.mode) {
+//         TRACE(0, "IBRT unknown mode -> limited/pairing mode");
+//         app_ibrt_enter_limited_mode();
+//     }
+// #endif
+}
+#endif
+
 int app_init(void) {
   int nRet = 0;
   struct nvrecord_env_t *nvrecord_env;
 #ifdef POWER_ON_ENTER_TWS_PAIRING_ENABLED
-  bool need_check_key = false;
+  bool need_check_key = true;
 #else
-  bool need_check_key = false;
+  bool need_check_key = true;
 #endif
   uint8_t pwron_case = APP_POWERON_CASE_INVALID;
 #ifdef BT_USB_AUDIO_DUAL_MODE
@@ -1920,7 +1962,7 @@ int app_init(void) {
   TRACE(2, "__factory_start: %p length: 0x%x", __factory_start,
         FACTORY_SECTION_SIZE);
 
-  TRACE(0, "app_init\n");
+  TRACE(0, "app_init, hello soundcore!! :3\n");
   app_tws_set_side_from_gpio();
 #ifdef __RPC_ENABLE__
   extern int rpc_service_setup(void);
@@ -1982,7 +2024,7 @@ int app_init(void) {
   if (hal_sw_bootmode_get() & HAL_SW_BOOTMODE_REBOOT) {
     hal_sw_bootmode_clear(HAL_SW_BOOTMODE_REBOOT);
     pwron_case = APP_POWERON_CASE_REBOOT;
-    need_check_key = false;
+    need_check_key = true;
     TRACE(0, "Initiative REBOOT happens!!!");
 #ifdef USER_REBOOT_PLAY_MUSIC_AUTO
     if (hal_sw_bootmode_get() & HAL_SW_BOOTMODE_LOCAL_PLAYER) {
@@ -2018,7 +2060,6 @@ int app_init(void) {
       app_status_indication_set(APP_STATUS_INDICATION_CHARGING);
       TRACE(0, "CHARGING!");
       app_battery_start();
-
       app_key_open(false);
       app_key_init_on_charging();
       nRet = 0;
@@ -2029,15 +2070,14 @@ int app_init(void) {
 #endif
       goto exit;
       break;
-    case APP_BATTERY_OPEN_MODE_CHARGING_PWRON:
-      TRACE(0, "CHARGING PWRON!");
+case APP_BATTERY_OPEN_MODE_CHARGING_PWRON:
+    TRACE(0, "CHARGING PWRON!");
 #ifdef IBRT_SEARCH_UI
-      is_charging_poweron = true;
+    is_charging_poweron = true;
 #endif
-      app_status_indication_set(APP_STATUS_INDICATION_CHARGING);
-      need_check_key = false;
-      nRet = 0;
-      break;
+    need_check_key = false;
+    nRet = 0;
+    break;
     case APP_BATTERY_OPEN_MODE_INVALID:
     default:
       nRet = -1;
@@ -2139,23 +2179,28 @@ int app_init(void) {
 #endif
 
   if (pwron_case != APP_POWERON_CASE_TEST) {
-    BesbtInit();
-    app_wait_stack_ready();
-    bt_drv_extra_config_after_init();
-    bt_generate_ecdh_key_pair();
-    app_bt_start_custom_function_in_bt_thread((uint32_t)0, 0,
-                                              (uint32_t)app_ibrt_init);
-  }
+      BesbtInit();
+      app_wait_stack_ready();
+      bt_drv_extra_config_after_init();
+      bt_generate_ecdh_key_pair();
+  #if defined(IBRT)
+      app_bt_start_custom_function_in_bt_thread((uint32_t)0, 0,
+                                                (uint32_t)app_ibrt_init_headphones);
+  #else
+      app_bt_start_custom_function_in_bt_thread((uint32_t)0, 0,
+                                                (uint32_t)app_bt_global_handle_init);
+  #endif
+    }
 #if defined(BLE_ENABLE) && defined(IBRT)
   app_ble_force_switch_adv(BLE_SWITCH_USER_IBRT, true);
 #endif
   app_sysfreq_req(APP_SYSFREQ_USER_APP_INIT, APP_SYSFREQ_52M);
   TRACE(1, "\n\n\nbt_stack_init_done:%d\n\n\n", pwron_case);
 
-  if (pwron_case == APP_POWERON_CASE_REBOOT) {
+if (pwron_case == APP_POWERON_CASE_REBOOT) {
     app_status_indication_init();
     user_io_timer_init();
-    app_status_indication_set(APP_STATUS_INDICATION_POWERON);
+    // app_status_indication_set(APP_STATUS_INDICATION_POWERON);
 #ifdef MEDIA_PLAYER_SUPPORT
     app_voice_report(APP_STATUS_INDICATION_POWERON, 0);
 #endif
@@ -2163,40 +2208,21 @@ int app_init(void) {
         (uint32_t)1, 0, (uint32_t)btif_me_write_bt_sleep_enable);
     btdrv_set_lpo_times();
 
+
 #if defined(IBRT_OTA)
     bes_ota_init();
 #endif
-    // app_bt_accessmode_set(BTIF_BAM_NOT_ACCESSIBLE);
+
 #if defined(IBRT)
-#ifdef IBRT_SEARCH_UI
-    if (is_charging_poweron == false) {
-      if (IBRT_UNKNOW == nvrecord_env->ibrt_mode.mode) {
-        TRACE(0, "ibrt_ui_log:power on unknow mode");
-        app_ibrt_enter_limited_mode();
-        // if(app_tws_is_right_side())
-        if (1) {
-          TRACE(0, "app_start_tws_serching_direactly");
-          app_start_tws_serching_direactly();
-        }
-      } else {
-        TRACE(1, "ibrt_ui_log:power on %d fetch out",
-              nvrecord_env->ibrt_mode.mode);
-        app_ibrt_ui_event_entry(IBRT_FETCH_OUT_EVENT);
-      }
-      // startLED_status(1000);
-      once_event_case = 9;
-      startonce_delay_event_Timer_(1000);
-      // startpwrkey_det(200);
+    if (nv_record_get_paired_dev_count() > 0) {
+        app_bt_accessmode_set(BTIF_BAM_NOT_ACCESSIBLE);
+        led_set_pairing_mode(false);
+        app_headphones_virtual_fetch_out(nvrecord_env);
+    } else {
+        app_bt_accessmode_set(BTIF_BT_DEFAULT_ACCESS_MODE_PAIR);
+        led_set_pairing_mode(true);
+        app_headphones_virtual_fetch_out(nvrecord_env);
     }
-#elif defined(IS_MULTI_AI_ENABLED)
-    // when ama and bisto switch, earphone need reconnect with peer, master need
-    // reconnect with phone
-    uint8_t box_action = app_ai_tws_reboot_get_box_action();
-    if (box_action != 0xFF) {
-      TRACE(2, "%s box_actionstate %d", __func__, box_action);
-      app_ibrt_ui_event_entry(box_action | IBRT_SKIP_FALSE_TRIGGER_MASK);
-    }
-#endif
 #else
     app_bt_accessmode_set(BTIF_BAM_NOT_ACCESSIBLE);
 #endif
@@ -2230,7 +2256,7 @@ int app_init(void) {
   else if (pwron_case == APP_POWERON_CASE_TEST) {
     app_status_indication_init();
     app_factorymode_set(true);
-    app_status_indication_set(APP_STATUS_INDICATION_POWERON);
+    // app_status_indication_set(APP_STATUS_INDICATION_POWERON);
 #ifdef MEDIA_PLAYER_SUPPORT
     app_voice_report(APP_STATUS_INDICATION_POWERON, 0);
 #endif
@@ -2303,68 +2329,67 @@ int app_init(void) {
       switch (pwron_case) {
       case APP_POWERON_CASE_CALIB:
         break;
-      case APP_POWERON_CASE_BOTHSCAN:
+case APP_POWERON_CASE_BOTHSCAN:
+    TRACE(0, "Power on bothscan -> pairing");
+
+    app_status_indication_set(APP_STATUS_INDICATION_BOTHSCAN);
+#ifdef MEDIA_PLAYER_SUPPORT
+    app_voice_report(APP_STATUS_INDICATION_BOTHSCAN, 0);
+#endif
+
+#if defined(__BTIF_EARPHONE__)
+#if defined(IBRT)
+#ifdef IBRT_SEARCH_UI
+    app_ibrt_enter_limited_mode();
+#else
+    app_bt_accessmode_set(BTIF_BT_DEFAULT_ACCESS_MODE_PAIR);
+#endif
+    led_set_pairing_mode(true);
+#else
+    app_bt_accessmode_set(BTIF_BT_DEFAULT_ACCESS_MODE_PAIR);
+    led_set_pairing_mode(true);
+#endif
+#endif
+
+#ifdef GFPS_ENABLED
+    app_enter_fastpairing_mode();
+#endif
+
+#if defined(__BTIF_AUTOPOWEROFF__)
+    app_start_10_second_timer(APP_PAIR_TIMER_ID);
+#endif
+    break;
+case APP_POWERON_CASE_NORMAL:
+#if defined(__BTIF_EARPHONE__) && !defined(__EARPHONE_STAY_BOTH_SCAN__)
+#if defined(IBRT)
+
+    if (nv_record_get_paired_dev_count() == 0) {
+        TRACE(0, "No paired devices -> pairing mode");
+
         app_status_indication_set(APP_STATUS_INDICATION_BOTHSCAN);
 #ifdef MEDIA_PLAYER_SUPPORT
         app_voice_report(APP_STATUS_INDICATION_BOTHSCAN, 0);
 #endif
-#if defined(__BTIF_EARPHONE__)
-#if defined(IBRT)
-#ifdef IBRT_SEARCH_UI
-        if (false == is_charging_poweron)
-          app_ibrt_enter_limited_mode();
-#endif
-#else
         app_bt_accessmode_set(BTIF_BT_DEFAULT_ACCESS_MODE_PAIR);
-#endif
-#ifdef GFPS_ENABLED
-        app_enter_fastpairing_mode();
-#endif
-#if defined(__BTIF_AUTOPOWEROFF__)
-        app_start_10_second_timer(APP_PAIR_TIMER_ID);
-#endif
-#endif
-#ifdef __THIRDPARTY
-        app_thirdparty_specific_lib_event_handle(THIRDPARTY_FUNC_NO2,
-                                                 THIRDPARTY_BT_DISCOVERABLE);
-#endif
-        break;
-      case APP_POWERON_CASE_NORMAL:
-#if defined(__BTIF_EARPHONE__) && !defined(__EARPHONE_STAY_BOTH_SCAN__)
-#if defined(IBRT)
+        led_set_pairing_mode(true);
+
 #ifdef IBRT_SEARCH_UI
-        app_status_indication_set(APP_STATUS_INDICATION_BOTHSCAN);
-        if (is_charging_poweron == false) {
-          startLED_status(1000);
-          once_event_case = 9;
-          startonce_delay_event_Timer_(1000);
-          if (IBRT_UNKNOW == nvrecord_env->ibrt_mode.mode) {
-            TRACE(0, "ibrt_ui_log:power on unknow mode");
-            app_ibrt_enter_limited_mode();
-            if (app_tws_is_right_side()) {
-              app_start_tws_serching_direactly();
-            }
-          } else {
-            TRACE(1, "ibrt_ui_log:power on %d fetch out",
-                  nvrecord_env->ibrt_mode.mode);
-            app_ibrt_ui_event_entry(IBRT_FETCH_OUT_EVENT);
-            //			app_status_indication_set(APP_STATUS_INDICATION_CHARGING);
-            // break;
-          }
-          // startpwrkey_det(200);
-        }
-#elif defined(IS_MULTI_AI_ENABLED)
-        // when ama and bisto switch, earphone need reconnect with peer, master
-        // need reconnect with phone
-        // app_ibrt_ui_event_entry(IBRT_OPEN_BOX_EVENT);
-        // TRACE(1,"ibrt_ui_log:power on %d fetch out",
-        // nvrecord_env->ibrt_mode.mode);
-        // app_ibrt_ui_event_entry(IBRT_FETCH_OUT_EVENT);
+        app_ibrt_enter_limited_mode();
 #endif
+        app_headphones_virtual_fetch_out(nvrecord_env);
+    } else {
+        TRACE(0, "Paired devices exist -> virtual fetch out");
+
+        led_set_pairing_mode(false);
+
+        app_headphones_virtual_fetch_out(nvrecord_env);
+    }
+
 #else
-        app_bt_accessmode_set(BTIF_BAM_NOT_ACCESSIBLE);
+    app_bt_accessmode_set(BTIF_BAM_NOT_ACCESSIBLE);
 #endif
 #endif
+    break;
       case APP_POWERON_CASE_REBOOT:
       case APP_POWERON_CASE_ALARM:
       default:
@@ -2448,5 +2473,10 @@ exit:
 #endif // BT_USB_AUDIO_DUAL_MODE
   app_sysfreq_req(APP_SYSFREQ_USER_APP_INIT, APP_SYSFREQ_32K);
 
+  // ==================== led test ====================
+    // TRACE(0, "rise and... glow, L E D S!");
+    
+    // hal_gpio_pin_set_dir(HAL_GPIO_PIN_LED2, HAL_GPIO_DIR_OUT, 0);
+    // hal_gpio_pin_clr(HAL_GPIO_PIN_LED2);
   return nRet;
 }
