@@ -96,6 +96,9 @@ int app_status_indication_set(APP_STATUS_INDICATION_T status) {
   TRACE(2, "%s %d", __func__, status);
 
   app_status = status;
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_LED2, HAL_GPIO_DIR_OUT, 1); // idk why the red led is glowing on startup
+  return 0; // haha you won't work now
+  
   memset(&cfg0, 0, sizeof(struct APP_PWL_CFG_T));
   memset(&cfg1, 0, sizeof(struct APP_PWL_CFG_T));
   app_pwl_stop(APP_PWL_ID_0);
