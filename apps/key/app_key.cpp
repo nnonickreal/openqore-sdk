@@ -20,9 +20,9 @@
 #include "list.h"
 #include "string.h"
 
-#define APP_KEY_TRACE(s, ...) // TRACE(s, ##__VA_ARGS__)
+#define APP_KEY_TRACE(num, s, ...) TRACE(num, s, ##__VA_ARGS__)
 
-#define KEY_EVENT_CNT_LIMIT (3)
+#define KEY_EVENT_CNT_LIMIT (10)
 
 typedef struct {
   list_t *key_list;
@@ -38,7 +38,10 @@ static int key_event_process(uint32_t key_code, uint8_t key_event) {
   uint32_t app_keyevt;
   APP_MESSAGE_BLOCK msg;
 
+  TRACE(3, "=== HAL KEY EVENT === code:%d event:%d (queue_cnt:%d)", key_code, key_event, key_event_cnt);
+
   if (key_event_cnt > KEY_EVENT_CNT_LIMIT) {
+    TRACE(2, "!!! KEY DROP !!! Queue limit exceeded (%d > %d)", key_event_cnt, KEY_EVENT_CNT_LIMIT);
     return 0;
   } else {
     key_event_cnt++;
@@ -48,7 +51,13 @@ static int key_event_process(uint32_t key_code, uint8_t key_event) {
   APP_KEY_SET_MESSAGE(app_keyevt, key_code, key_event);
   msg.msg_body.message_id = app_keyevt;
   msg.msg_body.message_ptr = (uint32_t)NULL;
-  app_mailbox_put(&msg);
+  
+  if (app_mailbox_put(&msg) != 0) {
+    TRACE(1, "!!! MAILBOX PUT FAILED !!! Rolling back count");
+    if (key_event_cnt > 0) {
+      key_event_cnt--;
+    }
+  }
 
   return 0;
 }
@@ -83,41 +92,47 @@ static int app_key_handle_process(APP_MESSAGE_BODY *msg_body) {
   APP_KEY_GET_CODE(msg_body->message_id, key_status.code);
   APP_KEY_GET_EVENT(msg_body->message_id, key_status.event);
 
-  APP_KEY_TRACE(3, "%s code:%d event:%d", __func__, key_status.code,
-                key_status.event);
+  TRACE(3, "=== APP KEY PROCESS === code:%d event:%d", key_status.code, key_status.event);
 
-  key_event_cnt--;
+  if (key_event_cnt > 0) {
+    key_event_cnt--;
+  }
+
+  if (list_is_empty(app_key_conifg.key_list)) {
+    TRACE(1, "!!! WARNING: ACTIVE KEY LIST IS COMPLETELY EMPTY !!!");
+  }
 
   key_handle = app_key_handle_find(&key_status);
 
-  if (key_handle != NULL && key_handle->function != NULL)
+  if (key_handle != NULL && key_handle->function != NULL) {
+    TRACE(2, "-> Handler matched: \"%s\"! Executing call...", key_handle->string);
     ((APP_KEY_HANDLE_CB_T)key_handle->function)(&key_status, key_handle->param);
+  } else {
+    TRACE(2, "-> No registered handler matched for code:%d event:%d", key_status.code, key_status.event);
+  }
 
   return 0;
 }
 
 int app_key_handle_registration(const APP_KEY_HANDLE *key_handle) {
   APP_KEY_HANDLE *dest_key_handle = NULL;
-  APP_KEY_TRACE(1, "%s", __func__);
   dest_key_handle = app_key_handle_find(&(key_handle->key_status));
 
-  APP_KEY_TRACE(2, "%s dest handle:0x%x", __func__, dest_key_handle);
   if (dest_key_handle == NULL) {
     dest_key_handle = (APP_KEY_HANDLE *)osPoolCAlloc(app_key_handle_mempool);
-    APP_KEY_TRACE(2, "%s malloc:0x%x", __func__, dest_key_handle);
     list_append(app_key_conifg.key_list, dest_key_handle);
   }
   if (dest_key_handle == NULL)
     return -1;
-  APP_KEY_TRACE(5, "%s set handle:0x%x code:%d event:%d function:%x", __func__,
-                dest_key_handle, key_handle->key_status.code,
-                key_handle->key_status.event, key_handle->function);
+
   dest_key_handle->key_status.code = key_handle->key_status.code;
   dest_key_handle->key_status.event = key_handle->key_status.event;
   dest_key_handle->string = key_handle->string;
   dest_key_handle->function = key_handle->function;
   dest_key_handle->param = key_handle->param;
-  ;
+
+  TRACE(4, "!!! REGISTER KEY !!! \"%s\" [code:%d event:%d]", 
+        dest_key_handle->string, dest_key_handle->key_status.code, dest_key_handle->key_status.event);
 
   return 0;
 }
