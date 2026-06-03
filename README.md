@@ -19,11 +19,6 @@ after reading (backuping) the flash, put the flash dump image in the "tools" fol
 
 # now that the firmware has finished building; if there are no errors you can load it to your headphones
 
-# you may want to back up the firmware currently on the headphones - it will be deleted when the new firmware is loaded on:
-./backup.sh
-
-# or do it manually by :
-
 # assuming that your serial port is 0, run the following to commands to program the headphones.
 bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 ```
