@@ -255,7 +255,8 @@ bool app_ibrt_if_tws_switch_prepare_needed(uint32_t *wait_ms) {
 #endif
 
 #ifdef IBRT_OTA
-  if (app_get_bes_ota_state()) {
+  // if (app_get_bes_ota_state()) {
+  if (0) {
     p_ibrt_ctrl->ibrt_role_switch_handle_user |=
         (1 << IBRT_ROLE_SWITCH_USER_OTA);
     *wait_ms = 800;
@@ -285,11 +286,12 @@ void app_ibrt_if_tws_swtich_prepare(void) {
 
 #ifdef IBRT_OTA
   ibrt_ctrl_t *ota_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
-  if ((app_get_bes_ota_state()) &&
+  // if ((app_get_bes_ota_state()) &&
+  if ((0) &&
       (ota_ibrt_ctrl->ibrt_role_switch_handle_user &
        IBRT_ROLE_SWITCH_USER_OTA)) {
-    app_set_ota_role_switch_initiator(true);
-    bes_ota_send_role_switch_req();
+    // app_set_ota_role_switch_initiator(true);
+    // bes_ota_send_role_switch_req();
   }
 #endif
 }
