@@ -237,7 +237,7 @@ void app_tws_if_tws_role_switch_complete_handler(uint8_t newRole) {
   TRACE(1, "[%s]---", __func__);
 
 #ifdef IBRT_OTA
-  ota_control_send_role_switch_complete();
+  // ota_control_send_role_switch_complete(); // we're not tws!!!!!
 #endif
 }
 
