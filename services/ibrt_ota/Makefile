@@ -21,7 +21,10 @@ endif
 
 $(IBRT_OTA_LIB_NAME)-y := $(src_obj)
 
-obj-y += $(IBRT_OTA_LIB_NAME).a
+# obj-y += $(IBRT_OTA_LIB_NAME).a
+obj-y += src/ota_control.o \
+         src/ota_spp.o \
+         src/ota_bes.o
 
 subdir-ccflags-y += -Iplatform/drivers/ana \
 					-Iplatform/hal \
