@@ -867,11 +867,11 @@ enum ANA_CODEC_USER_T {
 #include "hal_gpio.h"
 
 void q35_audio_path_enable(void) { // dac control
-    struct HAL_IOMUX_PIN_FUNCTION_MAP pin0 = {
-        HAL_GPIO_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
-    };
-    hal_iomux_init(&pin0, 1);
-    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_0, HAL_GPIO_DIR_OUT, 1); // reverse engineered from soundcore firmware but idk what this one does
+    // struct HAL_IOMUX_PIN_FUNCTION_MAP pin0 = {
+    //     HAL_GPIO_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
+    // };
+    // hal_iomux_init(&pin0, 1);
+    // hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_0, HAL_GPIO_DIR_OUT, 1); // ADC (ES7243) pin
 
     struct HAL_IOMUX_PIN_FUNCTION_MAP pin1 = {
         HAL_GPIO_PIN_P0_1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
@@ -1808,115 +1808,158 @@ uint32_t analog_aud_get_max_dre_gain(void) {
 
 int analog_reset(void) { return 0; }
 
+// void analog_open(void) {
+//   uint16_t val;
+
+//   val = REG_CODEC_ADCA_CH_SEL(1) | REG_CODEC_ADCB_CH_SEL(1) |
+//         REG_CODEC_ADCC_CH_SEL(1) | REG_CODEC_ADCD_CH_SEL(1);
+//   analog_write(ANA_REG_61, val);
+
+//   val = CFG_RESET_PGAA_DR | CFG_RESET_PGAB_DR | CFG_RESET_PGAC_DR |
+//         CFG_RESET_PGAD_DR;
+//   analog_write(ANA_REG_62, val);
+
+//   val = 0; // REG_CODEC_ADCA_GAIN_UPDATE | REG_CODEC_ADCB_GAIN_UPDATE |
+//            // REG_CODEC_ADCC_GAIN_UPDATE | REG_CODEC_ADCD_GAIN_UPDATE;
+//   analog_write(ANA_REG_63, val);
+
+//   val = REG_CODEC_ADC_IBSEL_REG(8) | REG_CODEC_ADC_IBSEL_VCOMP(8) |
+//         REG_CODEC_ADC_IBSEL_VREF(8) | REG_CODEC_ADC_LPFVCM_SW(7);
+//   analog_write(ANA_REG_67, val);
+
+//   val = REG_CODEC_ADC_OP1_IBIT(2) | REG_CODEC_ADC_VREF_SEL(4);
+//   analog_write(ANA_REG_68, val);
+
+//   val = REG_CODEC_BIAS_IBSEL(8) | REG_CODEC_BIAS_IBSEL_VOICE(8);
+//   if (vcodec_mv >= 1900) {
+//     val |= REG_CODEC_BIAS_IBSEL_TX(5);
+//   } else {
+// #ifdef LOW_CODEC_BIAS
+//     val |= REG_CODEC_BIAS_IBSEL_TX(1);
+// #else
+//     val |= REG_CODEC_BIAS_IBSEL_TX(3);
+// #endif
+//   }
+//   analog_write(ANA_REG_69, val);
+
+//   val = REG_CODEC_ADC_REG_VSEL(3) | REG_CODEC_BUF_LOWVCM(4) |
+//         REG_CODEC_EN_RX_EXT | REG_CODEC_EN_TX_EXT | REG_CODEC_DAC_CLK_EDGE_SEL;
+//   val |= REG_CODEC_EN_BIAS_LP;
+//   analog_write(ANA_REG_6A, val);
+
+//   uint16_t vcm, vcm_lpf;
+//   if (vcodec_mv >= 1900) {
+//     vcm = 7;
+//     vcm_lpf = 0xA;
+//   } else if (vcodec_mv >= 1800) {
+//     vcm = vcm_lpf = 7;
+//   } else {
+//     vcm = vcm_lpf = 7;
+//   }
+//   val = REG_CODEC_VCM_LOW_VCM(vcm) | REG_CODEC_VCM_LOW_VCM_LP(vcm) |
+//         REG_CODEC_VCM_LOW_VCM_LPF(vcm_lpf);
+//   analog_write(ANA_REG_6B, val);
+
+//   val = REG_CODEC_RX_VTOI_I_DAC2(4) | REG_CODEC_RX_VTOI_IDAC_SEL(8) |
+//         REG_CODEC_RX_VTOI_VCS_SEL(0x10);
+//   analog_write(ANA_REG_6C, val);
+
+//   if (vcodec_mv > 1900) {
+//     val = REG_CODEC_TX_DAC_VREF_L(9) | REG_CODEC_TX_DAC_VREF_R(9) |
+//           REG_CODEC_TX_EAR_CAS_BIT(3);
+//   } else if (vcodec_mv == 1900) {
+//     val = REG_CODEC_TX_DAC_VREF_L(0xA) | REG_CODEC_TX_DAC_VREF_R(0xA) |
+//           REG_CODEC_TX_EAR_CAS_BIT(3);
+//   } else {
+//     val = REG_CODEC_TX_DAC_VREF_L(2) | REG_CODEC_TX_DAC_VREF_R(2) |
+//           REG_CODEC_TX_EAR_CAS_BIT(1);
+//   }
+//   analog_write(ANA_REG_6D, val);
+
+//   val = REG_CODEC_TX_EAR_IBSEL(2);
+// #ifdef LOW_CODEC_BIAS
+//   if (vcodec_mv < 1900) {
+//     val = REG_CODEC_TX_EAR_IBSEL(0);
+//   }
+// #endif
+//   val |= REG_CODEC_TX_EAR_COMP_L(7) | REG_CODEC_TX_EAR_COMP_R(7) |
+//          REG_CODEC_TX_EAR_DR_ST(1) | REG_CODEC_TX_EAR_FBCAP(3);
+//   analog_write(ANA_REG_6E, val);
+
+//   val = REG_CODEC_TX_EAR_DRE_GAIN_L(0xF) | REG_CODEC_TX_EAR_DRE_GAIN_R(0xF) | REG_CODEC_TX_EAR_GAIN(1);
+//     analog_write(ANA_REG_6F, val);
+// #ifdef DAC_DRE_GAIN_DC_UPDATE
+//   val |=
+//       REG_CODEC_TX_EAR_DRE_GAIN_L_UPDATE | REG_CODEC_TX_EAR_DRE_GAIN_R_UPDATE;
+// #endif
+//   analog_write(ANA_REG_6F, val);
+
+//   val = REG_CODEC_TX_EAR_OUTPUTSEL(0) | REG_CODEC_TX_EAR_SOFTSTART(8) |
+//         REG_CODEC_TX_EAR_OCEN | REG_CODEC_TX_EAR_LPBIAS;
+//   analog_write(ANA_REG_70, val);
+
+//   val = REG_DAC_LDO0P9_VSEL(2) | REG_BYPASS_TX_REGULATOR |
+//         REG_CODEC_TX_EAR_VCM_BIT(3) | REG_CODEC_TX_EAR_VCM_SEL;
+//   if (vcodec_mv >= 1900) {
+//     val |= REG_CODEC_TX_RVREF_CAP_BIT | REG_TX_REGULATOR_BIT(0xD);
+//   } else {
+//     val |= REG_TX_REGULATOR_BIT(4);
+//   }
+//   analog_write(ANA_REG_74, val);
+
+//   val = REG_CLKMUX_DVDD_SEL | REG_CLKMUX_LDO0P9_VSEL(2) |
+//         REG_AUDPLL_LDO_VREF(4) | REG_AUDPLL_LPF_BW_SEL;
+//   analog_write(ANA_REG_7E, val);
+
+//   // Optimize bottom noise, dig_codec_adcE_vref_sel[3:0] should be 0x4 ————by
+//   // jeff 20200916
+//   analog_read(ANA_REG_16E, &val);
+//   val = SET_BITFIELD(val, DIG_CODEC_ADCE_VREF_SEL, 0x4);
+//   analog_write(ANA_REG_16E, val);
+
+// #ifdef AUDIO_OUTPUT_DC_CALIB_ANA
+//   analog_aud_dc_calib_init();
+//   analog_aud_dc_calib_enable(true);
+// #endif
+
+// #ifdef VCM_ON
+//   analog_aud_enable_common_internal(ANA_CODEC_USER_DAC, true);
+// #endif
+// }
+
 void analog_open(void) {
+  // --- STOCK Q35 PMU REGISTERS ---
+  analog_write(ANA_REG_61, 0x5500);
+  analog_write(ANA_REG_62, 0xf000);
+  analog_write(0x63, 0x0000); // В декомпиле это pmu_write(99, 0)
+  analog_write(ANA_REG_67, 0x7888);
+  analog_write(ANA_REG_68, 0x4002);
+  analog_write(ANA_REG_69, 0x0858);
+  analog_write(ANA_REG_6A, 0x3d03);
+  analog_write(ANA_REG_6B, 0x53b8);
+  
+  // Настройки ЦАПа (DAC / TX)
+  analog_write(ANA_REG_6C, 0x1088);
+  analog_write(ANA_REG_6D, 0x3990); // VREF
+  analog_write(ANA_REG_6E, 0xb13f);
+  analog_write(ANA_REG_6F, 0x4def); // Analog Gain
+  analog_write(ANA_REG_70, 0x102c);
+  analog_write(ANA_REG_74, 0xed45); // TX Regulator
+  analog_write(ANA_REG_7E, 0x0605);
+  uint16_t val73;
+  analog_read(0x73, &val73);
+  analog_write(0x73, val73 | 0x0800);
+
+  // Оптимизация шума (оставляем из кастома, если нужно, 
+  // но лучше пока закомментить, чтобы проверить чистый сток)
+  /*
   uint16_t val;
-
-  val = REG_CODEC_ADCA_CH_SEL(1) | REG_CODEC_ADCB_CH_SEL(1) |
-        REG_CODEC_ADCC_CH_SEL(1) | REG_CODEC_ADCD_CH_SEL(1);
-  analog_write(ANA_REG_61, val);
-
-  val = CFG_RESET_PGAA_DR | CFG_RESET_PGAB_DR | CFG_RESET_PGAC_DR |
-        CFG_RESET_PGAD_DR;
-  analog_write(ANA_REG_62, val);
-
-  val = 0; // REG_CODEC_ADCA_GAIN_UPDATE | REG_CODEC_ADCB_GAIN_UPDATE |
-           // REG_CODEC_ADCC_GAIN_UPDATE | REG_CODEC_ADCD_GAIN_UPDATE;
-  analog_write(ANA_REG_63, val);
-
-  val = REG_CODEC_ADC_IBSEL_REG(8) | REG_CODEC_ADC_IBSEL_VCOMP(8) |
-        REG_CODEC_ADC_IBSEL_VREF(8) | REG_CODEC_ADC_LPFVCM_SW(7);
-  analog_write(ANA_REG_67, val);
-
-  val = REG_CODEC_ADC_OP1_IBIT(2) | REG_CODEC_ADC_VREF_SEL(4);
-  analog_write(ANA_REG_68, val);
-
-  val = REG_CODEC_BIAS_IBSEL(8) | REG_CODEC_BIAS_IBSEL_VOICE(8);
-  if (vcodec_mv >= 1900) {
-    val |= REG_CODEC_BIAS_IBSEL_TX(5);
-  } else {
-#ifdef LOW_CODEC_BIAS
-    val |= REG_CODEC_BIAS_IBSEL_TX(1);
-#else
-    val |= REG_CODEC_BIAS_IBSEL_TX(3);
-#endif
-  }
-  analog_write(ANA_REG_69, val);
-
-  val = REG_CODEC_ADC_REG_VSEL(3) | REG_CODEC_BUF_LOWVCM(4) |
-        REG_CODEC_EN_RX_EXT | REG_CODEC_EN_TX_EXT | REG_CODEC_DAC_CLK_EDGE_SEL;
-  val |= REG_CODEC_EN_BIAS_LP;
-  analog_write(ANA_REG_6A, val);
-
-  uint16_t vcm, vcm_lpf;
-  if (vcodec_mv >= 1900) {
-    vcm = 7;
-    vcm_lpf = 0xA;
-  } else if (vcodec_mv >= 1800) {
-    vcm = vcm_lpf = 7;
-  } else {
-    vcm = vcm_lpf = 7;
-  }
-  val = REG_CODEC_VCM_LOW_VCM(vcm) | REG_CODEC_VCM_LOW_VCM_LP(vcm) |
-        REG_CODEC_VCM_LOW_VCM_LPF(vcm_lpf);
-  analog_write(ANA_REG_6B, val);
-
-  val = REG_CODEC_RX_VTOI_I_DAC2(4) | REG_CODEC_RX_VTOI_IDAC_SEL(8) |
-        REG_CODEC_RX_VTOI_VCS_SEL(0x10);
-  analog_write(ANA_REG_6C, val);
-
-  if (vcodec_mv > 1900) {
-    val = REG_CODEC_TX_DAC_VREF_L(9) | REG_CODEC_TX_DAC_VREF_R(9) |
-          REG_CODEC_TX_EAR_CAS_BIT(3);
-  } else if (vcodec_mv == 1900) {
-    val = REG_CODEC_TX_DAC_VREF_L(0xA) | REG_CODEC_TX_DAC_VREF_R(0xA) |
-          REG_CODEC_TX_EAR_CAS_BIT(3);
-  } else {
-    val = REG_CODEC_TX_DAC_VREF_L(2) | REG_CODEC_TX_DAC_VREF_R(2) |
-          REG_CODEC_TX_EAR_CAS_BIT(1);
-  }
-  analog_write(ANA_REG_6D, val);
-
-  val = REG_CODEC_TX_EAR_IBSEL(2);
-#ifdef LOW_CODEC_BIAS
-  if (vcodec_mv < 1900) {
-    val = REG_CODEC_TX_EAR_IBSEL(0);
-  }
-#endif
-  val |= REG_CODEC_TX_EAR_COMP_L(7) | REG_CODEC_TX_EAR_COMP_R(7) |
-         REG_CODEC_TX_EAR_DR_ST(1) | REG_CODEC_TX_EAR_FBCAP(3);
-  analog_write(ANA_REG_6E, val);
-
-  val = REG_CODEC_TX_EAR_DRE_GAIN_L(0xF) | REG_CODEC_TX_EAR_DRE_GAIN_R(0xF) | REG_CODEC_TX_EAR_GAIN(1);
-    analog_write(ANA_REG_6F, val);
-#ifdef DAC_DRE_GAIN_DC_UPDATE
-  val |=
-      REG_CODEC_TX_EAR_DRE_GAIN_L_UPDATE | REG_CODEC_TX_EAR_DRE_GAIN_R_UPDATE;
-#endif
-  analog_write(ANA_REG_6F, val);
-
-  val = REG_CODEC_TX_EAR_OUTPUTSEL(0) | REG_CODEC_TX_EAR_SOFTSTART(8) |
-        REG_CODEC_TX_EAR_OCEN | REG_CODEC_TX_EAR_LPBIAS;
-  analog_write(ANA_REG_70, val);
-
-  val = REG_DAC_LDO0P9_VSEL(2) | REG_BYPASS_TX_REGULATOR |
-        REG_CODEC_TX_EAR_VCM_BIT(3) | REG_CODEC_TX_EAR_VCM_SEL;
-  if (vcodec_mv >= 1900) {
-    val |= REG_CODEC_TX_RVREF_CAP_BIT | REG_TX_REGULATOR_BIT(0xD);
-  } else {
-    val |= REG_TX_REGULATOR_BIT(4);
-  }
-  analog_write(ANA_REG_74, val);
-
-  val = REG_CLKMUX_DVDD_SEL | REG_CLKMUX_LDO0P9_VSEL(2) |
-        REG_AUDPLL_LDO_VREF(4) | REG_AUDPLL_LPF_BW_SEL;
-  analog_write(ANA_REG_7E, val);
-
-  // Optimize bottom noise, dig_codec_adcE_vref_sel[3:0] should be 0x4 ————by
-  // jeff 20200916
   analog_read(ANA_REG_16E, &val);
   val = SET_BITFIELD(val, DIG_CODEC_ADCE_VREF_SEL, 0x4);
   analog_write(ANA_REG_16E, val);
+  */
 
+  // Калибровка DC Offset (оставляем, она важна для устранения щелчков)
 #ifdef AUDIO_OUTPUT_DC_CALIB_ANA
   analog_aud_dc_calib_init();
   analog_aud_dc_calib_enable(true);
@@ -2091,7 +2134,7 @@ void analog_aud_codec_speaker_enable(bool en) {
 }
 
 void q35_audio_path_disable(void) {
-    hal_gpio_pin_clr(HAL_GPIO_PIN_P0_0);
+    // hal_gpio_pin_clr(HAL_GPIO_PIN_P0_0);
     hal_gpio_pin_clr(HAL_GPIO_PIN_P0_1);
 }
 
