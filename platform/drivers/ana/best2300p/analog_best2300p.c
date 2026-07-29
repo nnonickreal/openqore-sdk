@@ -1931,14 +1931,14 @@ void analog_open(void) {
   // --- STOCK Q35 PMU REGISTERS ---
   analog_write(ANA_REG_61, 0x5500);
   analog_write(ANA_REG_62, 0xf000);
-  analog_write(0x63, 0x0000); // В декомпиле это pmu_write(99, 0)
+  analog_write(0x63, 0x0000); // pmu_write(99, 0)
   analog_write(ANA_REG_67, 0x7888);
   analog_write(ANA_REG_68, 0x4002);
   analog_write(ANA_REG_69, 0x0858);
   analog_write(ANA_REG_6A, 0x3d03);
   analog_write(ANA_REG_6B, 0x53b8);
   
-  // Настройки ЦАПа (DAC / TX)
+  // DAC / TX
   analog_write(ANA_REG_6C, 0x1088);
   analog_write(ANA_REG_6D, 0x3990); // VREF
   analog_write(ANA_REG_6E, 0xb13f);
@@ -1950,8 +1950,7 @@ void analog_open(void) {
   analog_read(0x73, &val73);
   analog_write(0x73, val73 | 0x0800);
 
-  // Оптимизация шума (оставляем из кастома, если нужно, 
-  // но лучше пока закомментить, чтобы проверить чистый сток)
+  // noise things
   /*
   uint16_t val;
   analog_read(ANA_REG_16E, &val);
@@ -1959,7 +1958,6 @@ void analog_open(void) {
   analog_write(ANA_REG_16E, val);
   */
 
-  // Калибровка DC Offset (оставляем, она важна для устранения щелчков)
 #ifdef AUDIO_OUTPUT_DC_CALIB_ANA
   analog_aud_dc_calib_init();
   analog_aud_dc_calib_enable(true);
