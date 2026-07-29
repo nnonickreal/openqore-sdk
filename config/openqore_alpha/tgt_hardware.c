@@ -60,27 +60,27 @@ uint8_t bt_addr[6]  = {0x1e,0x57,0x34,0x45,0x56,0x67};
 
 // ===================== AUDIO =====================
 
-#define TX_PA_GAIN 10 // this doesn't do anything and idk why
+#define TX_PA_GAIN 1 // stock firmware doesn't touch this i think?
 
 const struct CODEC_DAC_VOL_T codec_dac_vol[TGT_VOLUME_LEVEL_QTY] = {
     {TX_PA_GAIN, 0x00, -99},
     {TX_PA_GAIN, 0x00, -50},
-    {TX_PA_GAIN, 0x00, -45},
-    {TX_PA_GAIN, 0x00, -42},
-    {TX_PA_GAIN, 0x00, -39},
-    {TX_PA_GAIN, 0x00, -36},
-    {TX_PA_GAIN, 0x00, -33},
-    {TX_PA_GAIN, 0x00, -30},
+    {TX_PA_GAIN, 0x00, -46},
+    {TX_PA_GAIN, 0x00, -43},
+    {TX_PA_GAIN, 0x00, -40},
+    {TX_PA_GAIN, 0x00, -37},
+    {TX_PA_GAIN, 0x00, -34},
+    {TX_PA_GAIN, 0x00, -31},
+    {TX_PA_GAIN, 0x00, -29},
     {TX_PA_GAIN, 0x00, -27},
-    {TX_PA_GAIN, 0x00, -24},
+    {TX_PA_GAIN, 0x00, -25},
+    {TX_PA_GAIN, 0x00, -23},
+    {TX_PA_GAIN, 0x00, -22},
     {TX_PA_GAIN, 0x00, -21},
+    {TX_PA_GAIN, 0x00, -20},
+    {TX_PA_GAIN, 0x00, -19},
     {TX_PA_GAIN, 0x00, -18},
-    {TX_PA_GAIN, 0x00, -15},
-    {TX_PA_GAIN, 0x00, -12},
-    {TX_PA_GAIN, 0x00, -9},
-    {TX_PA_GAIN, 0x00, -6},
-    {TX_PA_GAIN, 0x00, -3},
-    {TX_PA_GAIN, 0x00, 0},
+    {TX_PA_GAIN, 0x00, -17},
 };
 
 // ===================== AUDIO INPUT =====================

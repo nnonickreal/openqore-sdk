@@ -83,7 +83,7 @@ RESAMPLE_ANY_SAMPLE_RATE ?= 1
 
 OSC_26M_X4_AUD2BB ?= 1
 
-AUDIO_OUTPUT_VOLUME_DEFAULT ?= 1
+AUDIO_OUTPUT_VOLUME_DEFAULT ?= 7
 # range:1~16
 
 AUDIO_INPUT_CAPLESSMODE ?= 0
@@ -404,7 +404,7 @@ endif
 
 #LDFLAGS_IMAGE += --wrap main
 
-#Q35 custom flags are here
+#Q35 (and q3* q2* models probably) custom flags are here
 
 OTA_CODE_OFFSET := 0x18000
 
@@ -412,8 +412,8 @@ ifeq ($(CURRENT_TEST),1)
 export VCODEC_VOLT ?= 1.6V
 export VANA_VOLT ?= 1.35V
 else
-export VCODEC_VOLT := 1.8V
+export VCODEC_VOLT := 1.95V
 export VANA_VOLT ?= 1.35V
 endif
 
-export AUDIO_OUTPUT_DC_CALIB ?= 1 # this one does nothing for now :sob:
+export AUDIO_OUTPUT_DC_CALIB_ANA := 1 # this one does nothing for now :sob:
