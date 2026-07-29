@@ -3703,10 +3703,10 @@ int hal_codec_dac_sdm_reset_set(void) {
     if (codec->REG_098 & CODEC_CODEC_DAC_EN) {
       osDelay(dac_delay_ms);
     }
-    for (int i = 0x200; i >= 0; i -= 0x100) {
-      hal_codec_dac_dc_offset_enable(i, i);
-      osDelay(1);
-    }
+    // for (int i = 0x200; i >= 0; i -= 0x100) {
+    //   hal_codec_dac_dc_offset_enable(i, i);
+    //   osDelay(1);
+    // }
     codec->REG_098 |= CODEC_CODEC_DAC_SDM_CLOSE;
     osDelay(1);
   }
@@ -3718,10 +3718,10 @@ int hal_codec_dac_sdm_reset_clear(void) {
   if (codec_opened) {
     osDelay(1);
     codec->REG_098 &= ~CODEC_CODEC_DAC_SDM_CLOSE;
-    for (int i = 0x100; i <= 0x300; i += 0x100) {
-      hal_codec_dac_dc_offset_enable(i, i);
-      osDelay(1);
-    }
+    // for (int i = 0x100; i <= 0x300; i += 0x100) {
+    //   hal_codec_dac_dc_offset_enable(i, i);
+    //   osDelay(1);
+    // }
     hal_codec_restore_dig_dac_gain();
   }
 
