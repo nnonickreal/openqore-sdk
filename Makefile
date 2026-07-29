@@ -639,7 +639,7 @@ endif
 
 # bootloader patch
 ifeq ($(SOUNDCORE_PATCH),1)
-      cmd_gen-IMAGE_BIN += && python ../../tools/soundcore_patcher.py ../../tools/soundcore_bootloader.bin $@ $@
+      cmd_gen-IMAGE_BIN += && python3 ../../tools/soundcore_patcher.py ../../tools/soundcore_bootloader.bin $@ $@
 endif
 
 quiet_cmd_gen-IMAGE_BIN = GENBIN  $@
