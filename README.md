@@ -28,7 +28,7 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 - buttons
 - leds, and a software PWM driver has been implemented for them
 - BT
-- sound, but the DAC is configured incorrectly for now
+- sound (reverse-engineered from q35 firmware)
 
 ## ❌ WIP (not working for now)
 
@@ -53,12 +53,6 @@ for languages other than the default English. for example, running `AUDIO=cn ./b
 the current languages supported with sound files are English (`en`) and Chinese (`cn`). other languages
 (or other sets of custom sounds) may be added by adding all the correct sound files into a
 `config/_default_cfg_src_/res/<custom_sounds>/` directory and building with `AUDIO=<custom_sounds> ./build.sh`.
-
-### blue light when connected
-
-the firmware can be configured to either have a blinking blue light when connected or not.
-build with `CONNECTED_BLUE_LIGHT=1 ./build.sh` to enable blinking when connected,
-or `CONNECTED_BLUE_LIGHT=0 ./build.sh` (or just the default `./build.sh`) to keep the leds off when connected.
 
 ## license and credits
 
