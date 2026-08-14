@@ -1356,6 +1356,8 @@ static void analog_aud_set_adc_gain(enum AUD_IO_PATH_T input_path,
 #ifdef ANC_APP
 void analog_aud_apply_anc_adc_gain_offset(enum ANC_TYPE_T type,
                                           int16_t offset_l, int16_t offset_r) {
+    return; // q35 doesn't use this???
+
   enum ANC_TYPE_T single_type;
   enum AUD_CHANNEL_MAP_T ch_map;
   uint32_t l, r;

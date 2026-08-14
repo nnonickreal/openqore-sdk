@@ -53,6 +53,11 @@ extern "C" bool app_usbaudio_mode_on(void);
 extern "C" void ota_flash_init(void);
 #endif
 
+extern "C" {
+    void app_extern_ad_init(void);
+    void app_adc_ES7243E_sleep(void);
+}
+
 #define APP_BATTERY_LEVEL_LOWPOWERTHRESHOLD (1)
 #define POWERON_PRESSMAXTIME_THRESHOLD_MS (5000)
 
@@ -428,30 +433,47 @@ int app_voice_report_handler(APP_STATUS_INDICATION_T status, uint8_t device_id,
     }
   }
 
-  uint16_t aud_pram = 0;
+//   uint16_t aud_pram = 0;
+//   if (isMerging) {
+//     aud_pram |= PROMOT_ID_BIT_MASK_MERGING;
+//   }
+// #ifdef BT_USB_AUDIO_DUAL_MODE
+//   if (!btusb_is_usb_mode()) {
+// #if defined(IBRT)
+//     app_ibrt_if_voice_report_handler(id, aud_pram);
+// #else
+//     trigger_media_play(id, device_id, aud_pram);
+// #endif
+//   }
+
+// #else
+// #if defined(IBRT)
+//   aud_pram |= PROMOT_ID_BIT_MASK_CHNLSEl_ALL;
+//   app_ibrt_if_voice_report_handler(id, aud_pram);
+// #else
+//   trigger_media_play(id, device_id, aud_pram);
+// #endif
+// #endif
+
+//   return 0;
+// }
+
+uint16_t aud_pram = 0;
   if (isMerging) {
     aud_pram |= PROMOT_ID_BIT_MASK_MERGING;
   }
+  
 #ifdef BT_USB_AUDIO_DUAL_MODE
   if (!btusb_is_usb_mode()) {
-#if defined(IBRT)
-    app_ibrt_if_voice_report_handler(id, aud_pram);
-#else
     trigger_media_play(id, device_id, aud_pram);
-#endif
   }
-
-#else
-#if defined(IBRT)
-  aud_pram |= PROMOT_ID_BIT_MASK_CHNLSEl_ALL;
-  app_ibrt_if_voice_report_handler(id, aud_pram);
 #else
   trigger_media_play(id, device_id, aud_pram);
-#endif
 #endif
 
   return 0;
 }
+
 
 extern "C" int app_voice_report(APP_STATUS_INDICATION_T status,
                                 uint8_t device_id) {
@@ -1082,13 +1104,17 @@ const APP_KEY_HANDLE app_key_handle_cfg[] = {
    app_bt_key,
    NULL},
 #endif
-#if defined(__BT_ANC_KEY__) && defined(ANC_APP)
-#if defined(IBRT)
-  {{APP_KEY_CODE_PWR, APP_KEY_EVENT_CLICK}, "bt anc key", app_anc_key, NULL},
-#else
-  {{APP_KEY_CODE_FN2, APP_KEY_EVENT_CLICK}, "bt anc key", app_anc_key, NULL},
-#endif
-#endif
+
+
+// #if defined(__BT_ANC_KEY__) && defined(ANC_APP)
+// #if defined(IBRT)
+//   {{APP_KEY_CODE_PWR, APP_KEY_EVENT_CLICK}, "bt anc key", app_anc_key, NULL},
+// #else
+//   {{APP_KEY_CODE_FN2, APP_KEY_EVENT_CLICK}, "bt anc key", app_anc_key, NULL},
+// #endif
+// #endif
+
+   
 #ifdef TILE_DATAPATH
   {{APP_KEY_CODE_TILE, APP_KEY_EVENT_DOWN},
    "tile function key",
@@ -1254,7 +1280,7 @@ static void delay_report_tonefun(const void *) {
   // DUMP8("%02x ", p_ibrt_ctrl->mobile_addr.address, 6);
   // app_status_indication_set(APP_STATUS_INDICATION_TWS_CONNECTED);
   if (Curr_Is_Master()) {
-    app_ibrt_sync_volume_info();
+    // app_ibrt_sync_volume_info();
   }
   if (delay_report_tone_num == APP_STATUS_INDICATION_DUDU) {
     if (Curr_Is_Master() && (avrcp_get_media_status() != 1) &&
@@ -1628,7 +1654,7 @@ static void once_delay_event_Timer_fun(const void *) {
     LINKLOSE_REBOOT_ENABLE = true;
     break;
   case 8:
-    app_ibrt_sync_volume_info();
+    // app_ibrt_sync_volume_info();
     break;
   case 9:
     break;
@@ -1685,7 +1711,7 @@ void app_gfps_battery_show_timer_stop() {
 int app_deinit(int deinit_case) {
   int nRet = 0;
   TRACE(2, "%s case:%d", __func__, deinit_case);
-  app_tws_if_trigger_role_switch();
+  // app_tws_if_trigger_role_switch();
   osDelay(200); // This is a hack; a hackkitttyy hack. To wait for the tws
                 // exchange to occur
 #ifdef WL_DET
@@ -1996,6 +2022,16 @@ int app_init(void) {
     osTimerStart(cpu_usage_timer_id, CPU_USAGE_TIMER_TMO_VALUE);
   }
 #endif
+
+  // ES7243E init
+  static const struct HAL_IOMUX_PIN_FUNCTION_MAP pin_adc_pwr[] = {
+      {HAL_IOMUX_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}
+  };
+  hal_iomux_init((struct HAL_IOMUX_PIN_FUNCTION_MAP *)pin_adc_pwr, 1);
+  hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)HAL_IOMUX_PIN_P0_0, HAL_GPIO_DIR_OUT, 1);
+
+  app_extern_ad_init();
+  app_adc_ES7243E_sleep();
 
   // app_status_indication_init();
 

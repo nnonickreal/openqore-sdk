@@ -83,12 +83,12 @@ extern const uint16_t CFG_HW_ADCKEY_MAP_TABLE[CFG_HW_ADCKEY_NUMBER];
 extern const struct HAL_KEY_GPIOKEY_CFG_T cfg_hw_gpio_key_cfg[CFG_HW_GPIOKEY_NUM];
 
 // ANC function key
-#define ANC_FUNCTION_KEY                    HAL_KEY_CODE_PWR
+#define ANC_FUNCTION_KEY                    HAL_KEY_CODE_FN5
 
 // ANC coefficient curve number
-#define ANC_COEF_NUM                        (1)
+#define ANC_COEF_NUM                        (3)
 
-//#define ANC_TALK_THROUGH
+#define ANC_TALK_THROUGH
 
 #ifdef ANC_TALK_THROUGH
 #define ANC_COEF_LIST_NUM                   (ANC_COEF_NUM + 1)
@@ -96,10 +96,25 @@ extern const struct HAL_KEY_GPIOKEY_CFG_T cfg_hw_gpio_key_cfg[CFG_HW_GPIOKEY_NUM
 #define ANC_COEF_LIST_NUM                   (ANC_COEF_NUM)
 #endif
 
-#define ANC_FF_MIC_CH_L                     AUD_CHANNEL_MAP_CH0
-#define ANC_FF_MIC_CH_R                     AUD_CHANNEL_MAP_CH1
-#define ANC_FB_MIC_CH_L                     AUD_CHANNEL_MAP_CH2
-#define ANC_FB_MIC_CH_R                     AUD_CHANNEL_MAP_CH3
+// #define ANC_FF_MIC_CH_L                     AUD_CHANNEL_MAP_CH2
+// #define ANC_FF_MIC_CH_R                     AUD_CHANNEL_MAP_CH3
+// #define ANC_FB_MIC_CH_L                     AUD_CHANNEL_MAP_CH0
+// #define ANC_FB_MIC_CH_R                     AUD_CHANNEL_MAP_CH1
+
+// #define ANC_VMIC_CFG                        AUD_VMIC_MAP_VMIC1
+// #define ANALOG_ADC_VMIC_CFG_ANC             AUD_VMIC_MAP_VMIC1
+
+#define ANC_FF_MIC_L    AUD_CHANNEL_MAP_CH0
+#define ANC_FF_MIC_R    AUD_CHANNEL_MAP_CH1
+#define ANC_FB_MIC_L    AUD_CHANNEL_MAP_CH2
+#define ANC_FB_MIC_R    AUD_CHANNEL_MAP_CH3
+
+#define ANC_FF_MIC_CH_L    ANC_FF_MIC_L
+#define ANC_FF_MIC_CH_R    ANC_FF_MIC_R
+#define ANC_FB_MIC_CH_L    ANC_FB_MIC_L
+#define ANC_FB_MIC_CH_R    ANC_FB_MIC_R
+
+#define ANC_VMIC_CFG AUD_VMIC_MAP_VMIC1
 
 // audio codec
 #define CFG_HW_AUD_INPUT_PATH_NUM           3
@@ -118,7 +133,7 @@ extern const char *BLE_DEFAULT_NAME;
 extern uint8_t ble_addr[6];
 extern uint8_t bt_addr[6];
 
-#define CODEC_SADC_VOL (12)
+#define CODEC_SADC_VOL (9)
 
 extern const struct CODEC_DAC_VOL_T codec_dac_vol[TGT_VOLUME_LEVEL_QTY];
 

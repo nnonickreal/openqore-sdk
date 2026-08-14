@@ -801,26 +801,28 @@ void app_anc_status_post(uint8_t status) {
 }
 
 void app_anc_status_sync(uint8_t status) {
-  APP_MESSAGE_BLOCK msg;
-  TRACE(2, " %s status %d", __func__, status);
-  if (app_poweroff_flag)
-    return;
+  // APP_MESSAGE_BLOCK msg;
+  // TRACE(2, " %s status %d", __func__, status);
+  // if (app_poweroff_flag)
+  //   return;
 
-  msg.mod_id = APP_MODUAL_ANC;
-  msg.msg_body.message_id = ANC_EVENT_SYNC_STATUS;
-  msg.msg_body.message_Param0 = status;
-  app_mailbox_put(&msg);
+  // msg.mod_id = APP_MODUAL_ANC;
+  // msg.msg_body.message_id = ANC_EVENT_SYNC_STATUS;
+  // msg.msg_body.message_Param0 = status;
+  // app_mailbox_put(&msg);
+  return;
 }
 
 void app_anc_status_sync_init(void) {
-  APP_MESSAGE_BLOCK msg;
-  TRACE(1, " %s ", __func__);
-  if (app_poweroff_flag)
-    return;
+  // APP_MESSAGE_BLOCK msg;
+  // TRACE(1, " %s ", __func__);
+  // if (app_poweroff_flag)
+  //   return;
 
-  msg.mod_id = APP_MODUAL_ANC;
-  msg.msg_body.message_id = ANC_EVENT_SYNC_INIT;
-  app_mailbox_put(&msg);
+  // msg.mod_id = APP_MODUAL_ANC;
+  // msg.msg_body.message_id = ANC_EVENT_SYNC_INIT;
+  // app_mailbox_put(&msg);
+  return;
 }
 
 void app_anc_do_init(void) {
@@ -872,15 +874,25 @@ void app_anc_post_simplayer_stop_evt(void) {
 
 bool anc_enabled(void) { return (anc_work_status == ANC_STATUS_ON); }
 
-void app_anc_resample(uint32_t res_ratio, uint32_t *in, uint32_t *out,
-                      uint32_t samples) {
-  uint32_t flag = int_lock();
+// void app_anc_resample(uint32_t res_ratio, uint32_t *in, uint32_t *out,
+//                       uint32_t samples) {
+//   uint32_t flag = int_lock();
+//   for (int i = samples; i > 0; i--) {
+//     for (int j = 0; j < res_ratio; j++) {
+//       *(out + (i - 1) * res_ratio + j) = *(in + i - 1);
+//     }
+//   }
+//   int_unlock(flag);
+// }
+
+void app_anc_resample(uint32_t res_ratio, uint32_t *in, uint32_t *out, uint32_t samples) {
+  // если единственная цель — атомарность обновления указателей/индексов буфера,
+  // не блокируй весь пересчёт
   for (int i = samples; i > 0; i--) {
     for (int j = 0; j < res_ratio; j++) {
       *(out + (i - 1) * res_ratio + j) = *(in + i - 1);
     }
   }
-  int_unlock(flag);
 }
 
 void app_anc_select_coef(void) {
@@ -1175,11 +1187,11 @@ void app_anc_bitrate_reopen(void) {
 
 void app_anc_status_change(void) {
 #if defined(IBRT)
-  ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
+  // ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
 
-  if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
-    anc_coef_idx = anc_peer_coef_idx;
-  }
+  // if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
+  //   anc_coef_idx = anc_peer_coef_idx;
+  // }
 #endif
 
   TRACE(3, "%s anc_work_status: %d anc_coef_idx: %d", __func__, anc_work_status,
@@ -1290,14 +1302,13 @@ static int app_anc_handle_process(APP_MESSAGE_BODY *msg_body) {
     if (evt == ANC_EVENT_FADE_IN) {
       anc_work_status = ANC_STATUS_ON;
       // recommand to play "ANC ON" prompt here...
-      app_voice_report(APP_STATUS_INDICATION_ALEXA_START,
-                       0); // close latlatency mode
+      // app_voice_report(APP_STATUS_INDICATION_ALEXA_START, 0); // close latlatency mode
     }
     if (evt == ANC_EVENT_FADE_OUT) {
       anc_work_status = ANC_STATUS_INIT_ON;
       // recommand to play "ANC OFF" prompt here...
-      app_voice_report(APP_STATUS_INDICATION_ALEXA_STOP,
-                       0); // close latlatency mode
+      // app_voice_report(APP_STATUS_INDICATION_ALEXA_STOP,
+      //                  0); // close latlatency mode
     }
     break;
   case ANC_EVENT_CHANGE_SAMPLERATE:
@@ -1342,39 +1353,39 @@ static int app_anc_handle_process(APP_MESSAGE_BODY *msg_body) {
 #endif
 
 #if defined(IBRT)
-    if (((BOOL)arg0 == false) && (app_anc_work_status() == false)) {
-      anc_coef_idx = 0;
-      anc_peer_coef_idx = 0;
-      anc_status_sync_flag = 0;
-      return 0;
-    }
+    // if (((BOOL)arg0 == false) && (app_anc_work_status() == false)) {
+    //   anc_coef_idx = 0;
+    //   anc_peer_coef_idx = 0;
+    //   anc_status_sync_flag = 0;
+    //   return 0;
+    // }
 
-    if (((BOOL)arg0 == true) && (app_anc_work_status() == true) &&
-        (anc_coef_idx == anc_peer_coef_idx)) {
-      anc_status_sync_flag = 0;
-      return 0;
-    }
+    // if (((BOOL)arg0 == true) && (app_anc_work_status() == true) &&
+    //     (anc_coef_idx == anc_peer_coef_idx)) {
+    //   anc_status_sync_flag = 0;
+    //   return 0;
+    // }
 #endif
     app_anc_status_change();
 
     break;
   case ANC_EVENT_SYNC_STATUS:
-#if defined(IBRT)
-    TRACE(4, "%s anc_work_status %d--->%d anc_coef_idx:%d ", __func__,
-          anc_work_status, arg0, anc_coef_idx);
+// #if defined(IBRT)
+//     TRACE(4, "%s anc_work_status %d--->%d anc_coef_idx:%d ", __func__,
+//           anc_work_status, arg0, anc_coef_idx);
 
-    if (ANC_STATUS_ON == arg0) {
-      arg0 = 1;
-    } else {
-      arg0 = 0;
-    }
+//     if (ANC_STATUS_ON == arg0) {
+//       arg0 = 1;
+//     } else {
+//       arg0 = 0;
+//     }
 
-    uint8_t buf[3] = {0};
-    buf[0] = (uint8_t)arg0;
-    buf[1] = (uint8_t)anc_coef_idx;
-    buf[2] = false; // set peer anc_status_sync_flag = false
-    tws_ctrl_send_cmd(APP_TWS_CMD_SYNC_ANC_STATUS, buf, 3);
-#endif
+//     uint8_t buf[3] = {0};
+//     buf[0] = (uint8_t)arg0;
+//     buf[1] = (uint8_t)anc_coef_idx;
+//     buf[2] = false; // set peer anc_status_sync_flag = false
+//     tws_ctrl_send_cmd(APP_TWS_CMD_SYNC_ANC_STATUS, buf, 3);
+// #endif
     break;
   case ANC_EVENT_SYNC_INIT:
     break;
@@ -1512,15 +1523,16 @@ void app_anc_cmd_receive_process(uint8_t *buf, uint16_t len) {
 }
 
 static void app_anc_notify_master_to_exchange_coef(uint8_t arg0, uint8_t arg1) {
-  uint8_t buf[3] = {0};
+  // uint8_t buf[3] = {0};
 
-  TRACE(3, "[%s] arg0:%d arg1:%d", __func__, arg0, arg1);
+  // TRACE(3, "[%s] arg0:%d arg1:%d", __func__, arg0, arg1);
 
-  buf[0] = IBRT_ACTION_ANC_NOTIRY_MASTER_EXCHANGE_COEF;
-  buf[1] = arg0;
-  buf[2] = arg1;
+  // buf[0] = IBRT_ACTION_ANC_NOTIRY_MASTER_EXCHANGE_COEF;
+  // buf[1] = arg0;
+  // buf[2] = arg1;
 
-  app_ibrt_ui_send_user_action(buf, 3);
+  // app_ibrt_ui_send_user_action(buf, 3);
+  return;
 }
 #endif
 
@@ -1548,15 +1560,15 @@ int app_anc_start(void) {
   }
 
 #if defined(IBRT)
-  ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
+  // ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
 
-  TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
-  if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
-    app_anc_notify_master_to_exchange_coef(1, 0);
-    return -1;
-  }
-  anc_coef_idx = 0;
-  app_anc_status_sync(!flag);
+  // TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
+  // if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
+  //   app_anc_notify_master_to_exchange_coef(1, 0);
+  //   return -1;
+  // }
+  // anc_coef_idx = 0;
+  // app_anc_status_sync(!flag);
 #endif
   anc_coef_idx = 0;
   app_anc_status_post(!flag);
@@ -1579,15 +1591,15 @@ int app_anc_switch_coef(uint8_t index) {
   }
 
 #if defined(IBRT)
-  ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
+  // ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
 
-  TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
-  if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
-    app_anc_notify_master_to_exchange_coef(2, index);
-    return -1;
-  }
-  anc_coef_idx = index;
-  app_anc_status_sync(!flag);
+  // TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
+  // if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
+  //   app_anc_notify_master_to_exchange_coef(2, index);
+  //   return -1;
+  // }
+  // anc_coef_idx = index;
+  // app_anc_status_sync(!flag);
 #endif
   anc_coef_idx = index;
   app_anc_status_post(!flag);
@@ -1605,15 +1617,15 @@ int app_anc_stop(void) {
   }
 
 #if defined(IBRT)
-  ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
+  // ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
 
-  TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
-  if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
-    app_anc_notify_master_to_exchange_coef(3, 0);
-    return -1;
-  }
-  anc_coef_idx = ANC_COEF_NUM;
-  app_anc_status_sync(!flag);
+  // TRACE(2, "[%s] current_role: %d", __func__, p_ibrt_ctrl->current_role);
+  // if (p_ibrt_ctrl->current_role == IBRT_SLAVE) {
+  //   app_anc_notify_master_to_exchange_coef(3, 0);
+  //   return -1;
+  // }
+  // anc_coef_idx = ANC_COEF_NUM;
+  // app_anc_status_sync(!flag);
 #endif
   anc_coef_idx = ANC_COEF_NUM;
   app_anc_status_post(!flag);
@@ -1754,28 +1766,29 @@ void test_anc_switch_coef(void) {
 
 #if defined(IBRT)
 void app_anc_sync_status(void) {
-  uint8_t buf[3] = {0};
+  // uint8_t buf[3] = {0};
 
-  bool flag = app_anc_work_status();
+  // bool flag = app_anc_work_status();
 
-  buf[0] = (uint8_t)flag;
+  // buf[0] = (uint8_t)flag;
 
-  if (flag == true) {
-    buf[1] = (uint8_t)anc_coef_idx;
-  } else {
-    buf[1] = (uint8_t)ANC_COEF_NUM;
-  }
+  // if (flag == true) {
+  //   buf[1] = (uint8_t)anc_coef_idx;
+  // } else {
+  //   buf[1] = (uint8_t)ANC_COEF_NUM;
+  // }
 
-  buf[2] = true; // set peer anc_status_sync_flag = true
+  // buf[2] = true; // set peer anc_status_sync_flag = true
 
-  anc_peer_coef_idx = 0;
+  // anc_peer_coef_idx = 0;
 
-  TRACE(4, "%s anc_work_status:%d, anc_coef_idx:%d, anc_sync_status_flag:%d",
-        __func__, buf[0], buf[1], buf[2]);
-  ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
+  // TRACE(4, "%s anc_work_status:%d, anc_coef_idx:%d, anc_sync_status_flag:%d",
+  //       __func__, buf[0], buf[1], buf[2]);
+  // ibrt_ctrl_t *p_ibrt_ctrl = app_tws_ibrt_get_bt_ctrl_ctx();
 
-  if (p_ibrt_ctrl->current_role == IBRT_MASTER) {
-    tws_ctrl_send_cmd(APP_TWS_CMD_SYNC_ANC_STATUS, buf, 3);
-  }
+  // if (p_ibrt_ctrl->current_role == IBRT_MASTER) {
+  //   tws_ctrl_send_cmd(APP_TWS_CMD_SYNC_ANC_STATUS, buf, 3);
+  // }
+  return;
 }
 #endif

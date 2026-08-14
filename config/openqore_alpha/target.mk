@@ -404,9 +404,13 @@ endif
 
 #LDFLAGS_IMAGE += --wrap main
 
+
+
 #Q35 (and q3* q2* models probably) custom flags are here
 
 OTA_CODE_OFFSET := 0x18000
+
+AUD_SEC_SIZE := 0x10000 # do NOT delete this when you're building without ANC pls :)
 
 ifeq ($(CURRENT_TEST),1)
 export VCODEC_VOLT ?= 1.6V
@@ -416,4 +420,33 @@ export VCODEC_VOLT := 1.95V
 export VANA_VOLT ?= 1.35V
 endif
 
-export AUDIO_OUTPUT_DC_CALIB_ANA := 1 # this one does nothing for now :sob:
+export AUDIO_OUTPUT_DC_CALIB_ANA := 1
+
+CODEC_ANC_BOOST := 1
+
+#### ANC DEFINE START ######
+export ANC_APP          := 1
+# Feed Forward  ANC configuration (external mic)
+export ANC_FF_ENABLED   := 1
+# Feed Backward ANC configuration (internal mic)
+export ANC_FB_ENABLED   := 1
+# Wind noise reduction mode
+export ANC_WNR_ENABLED := 0
+
+# Music cancel mode. Conflicts with audio resampling
+export AUDIO_ANC_FB_MC := 0
+export AUDIO_SECTION_SUPPT := 1
+export AUD_SECTION_STRUCT_VERSION := 2
+# Music cancel hardware?
+export AUDIO_ANC_FB_MC_HW := 0
+export APP_ANC_KEY := 1
+# Feedback check for feedforward mic. Locked on due to blobs
+export ANC_FB_CHECK := 1
+# Build in ANC testing app (closed source)
+APP_ANC_TEST := 0
+export ANC_ASSIST_ENABLED := 0
+##### ANC DEFINE END ######
+
+ifeq ($(APP_ANC_KEY),1)
+KBUILD_CPPFLAGS += -D__BT_ANC_KEY__
+endif

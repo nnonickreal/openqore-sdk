@@ -10,10 +10,15 @@
 #include "app_ibrt_voice_report.h"
 #include "app_tws_if.h"
 #include "led_control.h"
+#include "app_anc.h"
 
 // Forward declarations
 extern void app_bt_key_shutdown(APP_KEY_STATUS *status, void *param);
 extern struct BT_DEVICE_T app_bt_device;
+
+// #ifdef ANC_APP
+void app_anc_key(APP_KEY_STATUS *status, void *param);
+// #endif
 
 // ========== IBRT Actions ==========
 void send_vol_up(void) {
@@ -101,12 +106,20 @@ void app_key_init(void) {
       {{HAL_KEY_CODE_FN3, APP_KEY_EVENT_CLICK}, "vol down", app_key_vol_down, NULL},
       
       {{HAL_KEY_CODE_FN4, APP_KEY_EVENT_CLICK}, "vol up", app_key_vol_up, NULL},
+
       // play/pause is just vol down + vol up pins (0x18)
       {{HAL_KEY_CODE_FN3 | HAL_KEY_CODE_FN4, APP_KEY_EVENT_CLICK}, "play/pause", app_key_single_tap, NULL},
       {{HAL_KEY_CODE_FN3 | HAL_KEY_CODE_FN4, APP_KEY_EVENT_DOUBLECLICK}, "next", app_key_double_tap, NULL},
       {{HAL_KEY_CODE_FN3 | HAL_KEY_CODE_FN4, APP_KEY_EVENT_TRIPLECLICK}, "prev", app_key_triple_tap, NULL},
 
-      {{HAL_KEY_CODE_FN5, APP_KEY_EVENT_CLICK}, "anc", app_key_nc_trigger, NULL},
+      // ANC 
+// #ifdef ANC_APP
+      // {{HAL_KEY_CODE_FN5, APP_KEY_EVENT_CLICK}, "anc", (APP_KEY_HANDLE_CB_T)app_anc_key, NULL},
+      {{HAL_KEY_CODE_PWR, APP_KEY_EVENT_DOUBLECLICK}, "anc", (APP_KEY_HANDLE_CB_T)app_anc_key, NULL},
+// #else
+//       {{HAL_KEY_CODE_FN5, APP_KEY_EVENT_CLICK}, "anc", app_key_nc_trigger, NULL},
+// #endif
+
   };
 
   app_key_handle_clear();

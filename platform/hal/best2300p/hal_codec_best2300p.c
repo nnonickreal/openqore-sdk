@@ -43,8 +43,12 @@
 #endif
 #endif
 
-#if (defined(__TWS__) || defined(IBRT)) && defined(ANC_APP)
-//#define CODEC_TIMER
+// #if (defined(__TWS__) || defined(IBRT)) && defined(ANC_APP)
+// //#define CODEC_TIMER
+// #endif
+
+#ifndef CODEC_TIMER
+#define CODEC_TIMER
 #endif
 
 #ifdef CODEC_DSD
@@ -1526,30 +1530,30 @@ int hal_codec_start_interface(enum HAL_CODEC_ID_T id, enum AUD_STREAM_T stream,
 #ifdef __AUDIO_RESAMPLE__
     if (codec->REG_0E4 & CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE) {
       hal_codec_resample_clock_enable(stream);
-#if (defined(__TWS__) || defined(IBRT)) && defined(ANC_APP)
-      enum HAL_CODEC_SYNC_TYPE_T sync_type;
+// #if (defined(__TWS__) || defined(IBRT)) && defined(ANC_APP)
+//       enum HAL_CODEC_SYNC_TYPE_T sync_type;
 
-      sync_type =
-          GET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL);
-      if (sync_type != HAL_CODEC_SYNC_TYPE_NONE) {
-        codec->REG_0E4 =
-            SET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL,
-                         HAL_CODEC_SYNC_TYPE_NONE);
-        codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
-        hal_codec_reg_update_delay();
-        codec->REG_0F4 = resample_phase_float_to_value(1.0f);
-        hal_codec_reg_update_delay();
-        codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
-        hal_codec_reg_update_delay();
-        codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
-        codec->REG_0E4 = SET_BITFIELD(
-            codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL, sync_type);
-        hal_codec_reg_update_delay();
-        codec->REG_0F4 =
-            resample_phase_float_to_value(get_playback_resample_phase());
-        codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
-      }
-#endif
+//       sync_type =
+//           GET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL);
+//       if (sync_type != HAL_CODEC_SYNC_TYPE_NONE) {
+//         codec->REG_0E4 =
+//             SET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL,
+//                          HAL_CODEC_SYNC_TYPE_NONE);
+//         codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
+//         hal_codec_reg_update_delay();
+//         codec->REG_0F4 = resample_phase_float_to_value(1.0f);
+//         hal_codec_reg_update_delay();
+//         codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
+//         hal_codec_reg_update_delay();
+//         codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
+//         codec->REG_0E4 = SET_BITFIELD(
+//             codec->REG_0E4, CODEC_CODEC_RESAMPLE_DAC_TRIGGER_SEL, sync_type);
+//         hal_codec_reg_update_delay();
+//         codec->REG_0F4 =
+//             resample_phase_float_to_value(get_playback_resample_phase());
+//         codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_DAC_PHASE_UPDATE;
+//       }
+// #endif
       codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_DAC_ENABLE;
     }
 #endif
@@ -1630,28 +1634,28 @@ int hal_codec_start_interface(enum HAL_CODEC_ID_T id, enum AUD_STREAM_T stream,
     if (codec->REG_0E4 & CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE) {
       hal_codec_resample_clock_enable(stream);
 #if (defined(__TWS__) || defined(IBRT)) && defined(ANC_APP)
-      enum HAL_CODEC_SYNC_TYPE_T sync_type;
+      // enum HAL_CODEC_SYNC_TYPE_T sync_type;
 
-      sync_type =
-          GET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL);
-      if (sync_type != HAL_CODEC_SYNC_TYPE_NONE) {
-        codec->REG_0E4 =
-            SET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL,
-                         HAL_CODEC_SYNC_TYPE_NONE);
-        codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
-        hal_codec_reg_update_delay();
-        codec->REG_0F8 = resample_phase_float_to_value(1.0f);
-        hal_codec_reg_update_delay();
-        codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
-        hal_codec_reg_update_delay();
-        codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
-        codec->REG_0E4 = SET_BITFIELD(
-            codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL, sync_type);
-        hal_codec_reg_update_delay();
-        codec->REG_0F8 =
-            resample_phase_float_to_value(get_capture_resample_phase());
-        codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
-      }
+      // sync_type =
+      //     GET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL);
+      // if (sync_type != HAL_CODEC_SYNC_TYPE_NONE) {
+      //   codec->REG_0E4 =
+      //       SET_BITFIELD(codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL,
+      //                    HAL_CODEC_SYNC_TYPE_NONE);
+      //   codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
+      //   hal_codec_reg_update_delay();
+      //   codec->REG_0F8 = resample_phase_float_to_value(1.0f);
+      //   hal_codec_reg_update_delay();
+      //   codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
+      //   hal_codec_reg_update_delay();
+      //   codec->REG_0E4 &= ~CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
+      //   codec->REG_0E4 = SET_BITFIELD(
+      //       codec->REG_0E4, CODEC_CODEC_RESAMPLE_ADC_TRIGGER_SEL, sync_type);
+      //   hal_codec_reg_update_delay();
+      //   codec->REG_0F8 =
+      //       resample_phase_float_to_value(get_capture_resample_phase());
+      //   codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_ADC_PHASE_UPDATE;
+      // }
 #endif
       codec->REG_0E4 |= CODEC_CODEC_RESAMPLE_ADC_ENABLE;
     }

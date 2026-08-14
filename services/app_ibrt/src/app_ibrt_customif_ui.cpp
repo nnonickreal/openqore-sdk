@@ -140,7 +140,7 @@ void app_ibrt_customif_ui_global_handler_ind(ibrt_link_type_e link_type,
     if (MOBILE_LINK == link_type) {
       if (BTIF_BEC_NO_ERROR == status) {
         app_status_indication_set(APP_STATUS_INDICATION_CONNECTED);
-        app_tws_if_mobile_connected_handler(p_ibrt_ctrl->mobile_addr.address);
+        // app_tws_if_mobile_connected_handler(p_ibrt_ctrl->mobile_addr.address);
       }
     }
     break;
@@ -161,7 +161,7 @@ void app_ibrt_customif_ui_global_handler_ind(ibrt_link_type_e link_type,
                                     BT_DEVICE_ID_1, MAX_RECORD_NUM);
       app_audio_manager_sendrequest(APP_BT_STREAM_MANAGER_STOP, BT_STREAM_SBC,
                                     BT_DEVICE_ID_1, MAX_RECORD_NUM);
-      app_tws_if_mobile_disconnected_handler(p_ibrt_ctrl->mobile_addr.address);
+      // app_tws_if_mobile_disconnected_handler(p_ibrt_ctrl->mobile_addr.address);
     }
     if (TWS_LINK == link_type) {
 #ifdef MEDIA_PLAYER_SUPPORT
@@ -620,21 +620,21 @@ int app_ibrt_customif_ui_start(void) {
   memset(&config, 0, sizeof(ibrt_ui_config_t));
 
   // freeman mode config, default should be false
-  config.freeman_enable = false;
+  config.freeman_enable = true;
 
   // dont do role switch with mobile when enter freeman mode
-  config.freeman_dont_role_switch = false;
+  config.freeman_dont_role_switch = true;
 
   // tws earphone set the same addr, UI will be flexible, default should be true
-  config.tws_use_same_addr = true;
+  config.tws_use_same_addr = false;
 
   // ibrt slave will reconnect to mobile if tws connect failed, default should
   // be true
-  config.slave_reconnect_enable = true;
+  config.slave_reconnect_enable = false;
 
   // do tws switch when wearup or weardown, must be true because MIC will be
   // with IBRT master
-  config.wear_updown_tws_switch_enable = true;
+  config.wear_updown_tws_switch_enable = false;
 
   // pairing mode default value, default should be set false
   config.enter_pairing_mode = false;
@@ -660,14 +660,14 @@ int app_ibrt_customif_ui_start(void) {
   config.enter_pairing_on_mobile_disconnect = true;
 
   // for 08 error reconnect event, default must be true
-  config.disc_tws_before_reconnect_mobile = true;
+  config.disc_tws_before_reconnect_mobile = false;
   config.wait_time_before_disc_tws = 3000;
 
   // do tws switch when RSII value change, default should be true
   config.tws_switch_according_to_rssi_value = false;
 
   // disable tws switch, NOT recommended to open
-  config.disable_tws_switch = false;
+  config.disable_tws_switch = true;
 
   // disable tws switch, NOT recommended to open
   config.disable_stop_ibrt = true;

@@ -10,6 +10,7 @@ obj-y := audio_dump/ \
          ../utils/heap/ \
          osif/ \
          norflash_api/ \
+	 ext_adc_driver/ \
 
 ifeq ($(BONE_SENSOR_TDM),1)
 obj-y += bone_sensor/
