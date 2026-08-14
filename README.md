@@ -29,12 +29,13 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 - leds, and a software PWM driver has been implemented for them
 - BT
 - sound (reverse-engineered from q35 firmware)
+- ANC & transparency with stock coefficients
+- ADC (ES7243E)
 
 ## ❌ WIP (not working for now)
 
-- ANC and transparency
 - touch panel
-- ADC for ANC mics
+- ANC button
 ## other things
 The default audio alerts are stored in:
 
