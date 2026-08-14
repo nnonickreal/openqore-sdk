@@ -52,7 +52,7 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 - ANC button
 
 ## roadmap
-- [x] made firmware & base functions work correctly
+- [x] make firmware & base functions work correctly
 - [ ] apply an EQ for correcting speakers AFR
 - [ ] multipoint
 - [ ] audio focusing feature - make headphones focus on specific connected device by clicking some button combination; headphones should be focused even if the other device is trying to take the focus on itself
