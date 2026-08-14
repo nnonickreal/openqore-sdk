@@ -35,7 +35,7 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 | play/pause | double click | next track |
 | play/pause | triple click | prev track |
 
-**note that ANC is currently unmapped because it works buggy in the firmware**
+**note that ANC button is currently unmapped because it works buggy in the firmware**
 
 ## ✅ working 
 
