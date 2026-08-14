@@ -63,6 +63,15 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 
 
 ## other things
+### custom build flags
+currently, there is only a "SOUNDCORE_PATCH" flag. if it's enabled, it runs a script after building. the script extracts the OTA_BOOT partition from your full flash dump, which you should place in the tools/ directory and name firmware.bin. 
+
+this script is intended for use if you plan to flash the firmware [via UART](https://github.com/nnonickreal/openqore/blob/main/docs/FLASHING.md) starting at address 0x3c000000. it's **NOT needed** if you're flashing over-the-air.
+
+it's disabled by default to flash over-the-air.
+
+### custom audio alerts
+
 The default audio alerts are stored in:
 
 `config/_default_cfg_src_/res/en/`
