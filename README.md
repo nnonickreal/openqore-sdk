@@ -23,12 +23,26 @@ after reading (backuping) the flash, put the flash dump image in the "tools" fol
 bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 ```
 
+## button mappings
+| button | action | mapped on |
+| :--- | :--- | :--- |
+| PWR | click | power on |
+| PWR | holding | power off |
+| PWR | double click | ANC switch |
+| volume up | click | vol + |
+| volume down | click | vol - |
+| play/pause | click | play/pause |
+| play/pause | double click | next track |
+| play/pause | triple click | prev track |
+
+**note that ANC is currently unmapped because it works buggy in the firmware**
+
 ## ✅ working 
 
 - buttons
 - leds, and a software PWM driver has been implemented for them
 - BT
-- sound (reverse-engineered from q35 firmware)
+- sound (reverse-engineered from q35 firmware) but speakers are clipping, needs to be fixed
 - ANC & transparency with stock coefficients
 - ADC (ES7243E)
 
@@ -36,6 +50,18 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 
 - touch panel
 - ANC button
+
+## roadmap
+- [x] made firmware & base functions work correctly
+- [ ] apply an EQ for correcting speakers AFR
+- [ ] multipoint
+- [ ] audio focusing feature - make headphones focus on specific connected device by clicking some button combination; headphones should be focused even if the other device is trying to take the focus on itself
+- [ ] BLE beacon based on [openhaystack](https://github.com/seemoo-lab/openhaystack) project
+- [ ] always-on BLE beacon
+- [ ] PC & mobile app for setting EQ and other future features with showing real-time AFR and battery life
+- [ ] USB audio
+
+
 ## other things
 The default audio alerts are stored in:
 
