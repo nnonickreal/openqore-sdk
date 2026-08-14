@@ -53,12 +53,12 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 
 ## roadmap
 - [x] make firmware & base functions work correctly
-- [ ] apply an EQ for correcting speakers AFR
+- [ ] apply an EQ for correcting the speakers frequency response
 - [ ] multipoint
 - [ ] audio focusing feature - make headphones focus on specific connected device by clicking some button combination; headphones should be focused even if the other device is trying to take the focus on itself
 - [ ] BLE beacon based on [openhaystack](https://github.com/seemoo-lab/openhaystack) project
 - [ ] always-on BLE beacon
-- [ ] PC & mobile app for setting EQ and other future features with showing real-time AFR and battery life
+- [ ] PC & mobile app for setting EQ and other future features with showing real-time frequency response and battery life
 - [ ] USB audio
 
 
