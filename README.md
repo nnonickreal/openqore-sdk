@@ -48,8 +48,12 @@ bestool write-image out/openqore_alpha/openqore_alpha.bin --port /dev/ttyACM0
 
 ## ❌ WIP (not working for now)
 
+- power consumption (**read below!**) 
 - touch panel
 - ANC button
+
+### warnings
+at this time, it is **not recommended** to use this firmware due to a power consumption issue. it consumes an insane amount of power (200-250 mA vs 40-60 mA on the stock firmware), and the problem is that it's dangerous for the hardware. this is probably related to the sound problems. the SDK is only for testing & developing at the moment and the issue is currently being investigated.
 
 ## roadmap
 - [x] make firmware & base functions work correctly
