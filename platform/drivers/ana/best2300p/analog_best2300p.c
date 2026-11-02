@@ -866,18 +866,14 @@ enum ANA_CODEC_USER_T {
 #include "hal_iomux.h"
 #include "hal_gpio.h"
 
-void q35_audio_path_enable(void) { // dac control
-    // struct HAL_IOMUX_PIN_FUNCTION_MAP pin0 = {
-    //     HAL_GPIO_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
-    // };
-    // hal_iomux_init(&pin0, 1);
-    // hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_0, HAL_GPIO_DIR_OUT, 1); // ADC (ES7243) pin
-
-    struct HAL_IOMUX_PIN_FUNCTION_MAP pin1 = {
-        HAL_GPIO_PIN_P0_1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_NOPULL
+void q35_audio_path_enable(void) {
+    static const struct HAL_IOMUX_PIN_FUNCTION_MAP pins[] = {
+        {HAL_IOMUX_PIN_P1_2, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE},
+        {HAL_IOMUX_PIN_P0_1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE},
     };
-    hal_iomux_init(&pin1, 1);
-    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_1, HAL_GPIO_DIR_OUT, 1); // this one turns the dac on
+    hal_iomux_init((struct HAL_IOMUX_PIN_FUNCTION_MAP *)pins, 2);
+    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P1_2, HAL_GPIO_DIR_OUT, 1);
+    hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_1, HAL_GPIO_DIR_OUT, 1);
 }
 
 struct ANALOG_PLL_CFG_T {
@@ -892,7 +888,7 @@ struct ANALOG_PLL_CFG_T {
 #define OPT_TYPE const
 #endif
 
-static OPT_TYPE uint16_t vcodec_mv = (uint16_t)(VCODEC_VOLT * 1000);
+static OPT_TYPE uint16_t vcodec_mv = 1950;
 
 static bool ana_spk_req;
 static bool ana_spk_muted;
@@ -2135,7 +2131,7 @@ void analog_aud_codec_speaker_enable(bool en) {
 
 void q35_audio_path_disable(void) {
     // hal_gpio_pin_clr(HAL_GPIO_PIN_P0_0);
-    hal_gpio_pin_clr(HAL_GPIO_PIN_P0_1);
+    // hal_gpio_pin_clr(HAL_GPIO_PIN_P0_1);
 }
 
 void analog_aud_codec_dac_enable(bool en) {

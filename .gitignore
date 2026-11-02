@@ -98,6 +98,9 @@ Release/
 /out/
 *.pre
 
+# Binaries
+*.bin
+
 # configuration file
 # *.ini
 log.txt

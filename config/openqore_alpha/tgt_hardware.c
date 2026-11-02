@@ -110,8 +110,6 @@ const struct CODEC_DAC_VOL_T codec_dac_vol[TGT_VOLUME_LEVEL_QTY] = {
     {TX_PA_GAIN, SDM_GAIN,  0 }  // [17] FF 00 
 }; 
 
-// this is correct but speakers are clipping again
-
 
 // ===================== AUDIO INPUT =====================
 

@@ -99,7 +99,7 @@ static uint8_t app_status_indication_init(void) {
   static const struct HAL_IOMUX_PIN_FUNCTION_MAP leds[] = {
       {HAL_IOMUX_PIN_LED1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // WHITE
       {HAL_IOMUX_PIN_LED2, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // RED
-      {HAL_IOMUX_PIN_P0_3, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}, // BLUE
+      {HAL_IOMUX_PIN_P0_3, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLDOWN_ENABLE}, // BLUE (DAT_3c150528)
   };
   
   hal_iomux_init(leds, 3);
@@ -2023,11 +2023,15 @@ int app_init(void) {
   }
 #endif
 
-  // ES7243E init
-  static const struct HAL_IOMUX_PIN_FUNCTION_MAP pin_adc_pwr[] = {
-      {HAL_IOMUX_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE}
+// Stock app_hw_init pin map (DAT_3c150514) + ES7243E init
+  static const struct HAL_IOMUX_PIN_FUNCTION_MAP q35_hw_pins[] = {
+      {HAL_IOMUX_PIN_P1_2, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE},   // 0x0A: Audio PA / Switch Power EN
+      {HAL_IOMUX_PIN_P0_1, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLUP_ENABLE},   // 0x01: Audio Switch Unmute
+      {HAL_IOMUX_PIN_P0_0, HAL_IOMUX_FUNC_AS_GPIO, HAL_IOMUX_PIN_VOLTAGE_VIO, HAL_IOMUX_PIN_PULLDOWN_ENABLE}, // 0x00: ES7243E Power
   };
-  hal_iomux_init((struct HAL_IOMUX_PIN_FUNCTION_MAP *)pin_adc_pwr, 1);
+  hal_iomux_init((struct HAL_IOMUX_PIN_FUNCTION_MAP *)q35_hw_pins, 3);
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_P1_2, HAL_GPIO_DIR_OUT, 1);
+  hal_gpio_pin_set_dir(HAL_GPIO_PIN_P0_1, HAL_GPIO_DIR_OUT, 1);
   hal_gpio_pin_set_dir((enum HAL_GPIO_PIN_T)HAL_IOMUX_PIN_P0_0, HAL_GPIO_DIR_OUT, 1);
 
   app_extern_ad_init();
